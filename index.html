@@ -6,13 +6,29 @@
     <meta name="description" content="เว็บตัวอย่างภาษาไทย">
     <title>เว็บไซต์อย่างเป็นทางการ</title>
     <style>
-        :root{--bg:#f7f8fb;--card:#ffffff;--muted:#6b7280;--accent:#0f62fe}
+        :root{--bg:#f7f8fb;--card:#ffffff;--muted:#6b7280;--accent:#0f62fe;--success:#0f9d58;--danger:#dc2626}
         html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,'Noto Sans Thai',Arial,sans-serif;background:var(--bg);color:#111}
         .page{min-height:100%;display:flex;align-items:center;justify-content:center;padding:2rem}
         .card{background:var(--card);border-radius:12px;box-shadow:0 6px 24px rgba(16,24,40,0.08);padding:40px 48px;text-align:center;max-width:720px;width:100%}
         h1{margin:0 0 12px;font-size:1.6rem}
-        p.lead{color:var(--muted);margin:0 0 24px}
+        p.lead{color:var(--muted);margin:0 0 24px;line-height:1.6}
         .cta{display:inline-block;padding:14px 22px;font-size:1.05rem;border-radius:10px;background:var(--accent);color:#fff;border:0;cursor:pointer;box-shadow:0 6px 18px rgba(15,98,254,0.18)}
+        .cta:disabled{opacity:0.8;cursor:default}
+        .modal{position:fixed;inset:0;background:rgba(15,23,42,0.55);display:flex;align-items:center;justify-content:center;padding:1.5rem;z-index:10}
+        .modal.hidden{display:none}
+        .modal-card{background:#fff;border-radius:16px;box-shadow:0 16px 48px rgba(15,23,42,0.22);padding:28px 30px;width:min(100%, 420px)}
+        .modal-card h2{margin:0 0 8px;font-size:1.3rem}
+        .modal-card .modal-lead{margin:0 0 16px;color:var(--muted);line-height:1.6}
+        form{display:grid;gap:12px;text-align:left}
+        label{display:grid;gap:6px;font-weight:600}
+        input{padding:12px 14px;border:1px solid #d1d5db;border-radius:10px;font-size:1rem}
+        input:focus{outline:2px solid rgba(15,98,254,0.2);border-color:var(--accent)}
+        .submit-btn{margin-top:8px;padding:12px 16px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+        .status{margin-top:16px;padding:12px 14px;border-radius:10px;display:flex;align-items:center;gap:8px;font-weight:700}
+        .status.hidden{display:none}
+        .status.success{background:#eafbf0;color:var(--success)}
+        .status.error{background:#fef2f2;color:var(--danger)}
+        .status .icon{font-size:1.1rem}
         /* floating heart */
         .floating{position:fixed;pointer-events:none;display:flex;align-items:center;gap:8px;transform-origin:center center}
         .floating .heart{font-size:36px;line-height:1}
@@ -27,17 +43,43 @@
 </head>
 <body>
     <main class="page">
-        <section class="card" role="main">
+        <section class="card" id="welcome-card" role="main">
             <h1>เว็บไซต์อย่างเป็นทางการ</h1>
-            <p class="lead">ยินดีต้อนรับสู่เว็บไซต์ของเรา กรุณาลองใช้ปุ่มด้านล่าง</p>
-            <button id="cta" class="cta" aria-label="เฮ้คุณลองกดดู">เฮ้คุณลองกดดู</button>
+            <p class="lead">ยินดีต้อนรับสู่เว็บไซต์ของเรา กรุณายืนยันตัวตนก่อนเข้าถึงเนื้อหา</p>
+            <button id="cta" class="cta" aria-label="กดเพื่อยืนยันตัวตน">กดเพื่อยืนยันตัวตน</button>
         </section>
     </main>
+
+    <div id="verifyModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="verifyTitle">
+        <div class="modal-card">
+            <h2 id="verifyTitle">ยืนยันตัวตน</h2>
+            <p class="modal-lead">กรอกชื่อของคุณ และอายุ (ถ้ามี) เพื่อเข้าสู่เว็บไซต์</p>
+            <form id="verifyForm" novalidate>
+                <label for="name">ชื่อ</label>
+                <input id="name" name="name" type="text" placeholder="กรอกชื่อของคุณ" required>
+
+                <label for="age">อายุ (ไม่บังคับ)</label>
+                <input id="age" name="age" type="number" min="1" placeholder="กรอกอายุถ้ามี">
+
+                <button class="submit-btn" type="submit">ยืนยัน</button>
+            </form>
+            <div id="status" class="status hidden" aria-live="polite"></div>
+        </div>
+    </div>
 
     <script>
         (function(){
             const btn = document.getElementById('cta');
-            btn.addEventListener('click', function(e){
+            const modal = document.getElementById('verifyModal');
+            const form = document.getElementById('verifyForm');
+            const nameInput = document.getElementById('name');
+            const ageInput = document.getElementById('age');
+            const status = document.getElementById('status');
+            const card = document.getElementById('welcome-card');
+            const title = card.querySelector('h1');
+            const lead = card.querySelector('.lead');
+
+            function showHeartAnimation(){
                 const rect = btn.getBoundingClientRect();
                 const centerX = rect.left + rect.width/2;
                 const centerY = rect.top + rect.height/2;
@@ -46,12 +88,50 @@
                 el.className = 'floating animate';
                 el.style.left = (centerX - 60) + 'px';
                 el.style.top = (centerY - 40) + 'px';
-                el.innerHTML = '<div class="heart">❤️</div><div class="text">ขอบคุณที่กด!</div>';
+                el.innerHTML = '<div class="heart">❤️</div><div class="text">กำลังยืนยัน...</div>';
                 document.body.appendChild(el);
 
                 setTimeout(()=>{
                     el.remove();
                 }, 3000);
+            }
+
+            function resetStatus(){
+                status.className = 'status hidden';
+                status.innerHTML = '';
+            }
+
+            function showStatus(type, message, icon){
+                status.className = `status ${type}`;
+                status.innerHTML = `<span class="icon">${icon}</span><span>${message}</span>`;
+            }
+
+            btn.addEventListener('click', function(){
+                showHeartAnimation();
+                resetStatus();
+                modal.classList.remove('hidden');
+                nameInput.focus();
+            });
+
+            form.addEventListener('submit', function(e){
+                e.preventDefault();
+                const name = nameInput.value.trim();
+                const age = ageInput.value.trim();
+
+                if (!name) {
+                    showStatus('error', 'ยืนยันไม่สำเร็จ กรุณากรอกชื่อของคุณ', '✖');
+                    return;
+                }
+
+                showStatus('success', 'เฮ้ คุณยืนยันเรียบร้อยแล้ว', '✓');
+
+                setTimeout(function(){
+                    modal.classList.add('hidden');
+                    title.textContent = 'ยินดีต้อนรับคุณ ' + name;
+                    lead.textContent = age ? 'การยืนยันตัวตนสำเร็จแล้ว คุณสามารถใช้งานเว็บไซต์ได้เลย' : 'การยืนยันตัวตนสำเร็จแล้ว คุณสามารถใช้งานเว็บไซต์ได้เลย';
+                    btn.textContent = 'เข้าหน้าเว็บแล้ว';
+                    btn.disabled = true;
+                }, 1200);
             });
         })();
     </script>
