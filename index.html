@@ -1,139 +1,477 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="เว็บตัวอย่างภาษาไทย">
-    <title>เว็บไซต์อย่างเป็นทางการ</title>
-    <style>
-        :root{--bg:#f7f8fb;--card:#ffffff;--muted:#6b7280;--accent:#0f62fe;--success:#0f9d58;--danger:#dc2626}
-        html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,'Noto Sans Thai',Arial,sans-serif;background:var(--bg);color:#111}
-        .page{min-height:100%;display:flex;align-items:center;justify-content:center;padding:2rem}
-        .card{background:var(--card);border-radius:12px;box-shadow:0 6px 24px rgba(16,24,40,0.08);padding:40px 48px;text-align:center;max-width:720px;width:100%}
-        h1{margin:0 0 12px;font-size:1.6rem}
-        p.lead{color:var(--muted);margin:0 0 24px;line-height:1.6}
-        .cta{display:inline-block;padding:14px 22px;font-size:1.05rem;border-radius:10px;background:var(--accent);color:#fff;border:0;cursor:pointer;box-shadow:0 6px 18px rgba(15,98,254,0.18)}
-        .cta:disabled{opacity:0.8;cursor:default}
-        .modal{position:fixed;inset:0;background:rgba(15,23,42,0.55);display:flex;align-items:center;justify-content:center;padding:1.5rem;z-index:10}
-        .modal.hidden{display:none}
-        .modal-card{background:#fff;border-radius:16px;box-shadow:0 16px 48px rgba(15,23,42,0.22);padding:28px 30px;width:min(100%, 420px)}
-        .modal-card h2{margin:0 0 8px;font-size:1.3rem}
-        .modal-card .modal-lead{margin:0 0 16px;color:var(--muted);line-height:1.6}
-        form{display:grid;gap:12px;text-align:left}
-        label{display:grid;gap:6px;font-weight:600}
-        input{padding:12px 14px;border:1px solid #d1d5db;border-radius:10px;font-size:1rem}
-        input:focus{outline:2px solid rgba(15,98,254,0.2);border-color:var(--accent)}
-        .submit-btn{margin-top:8px;padding:12px 16px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
-        .status{margin-top:16px;padding:12px 14px;border-radius:10px;display:flex;align-items:center;gap:8px;font-weight:700}
-        .status.hidden{display:none}
-        .status.success{background:#eafbf0;color:var(--success)}
-        .status.error{background:#fef2f2;color:var(--danger)}
-        .status .icon{font-size:1.1rem}
-        /* floating heart */
-        .floating{position:fixed;pointer-events:none;display:flex;align-items:center;gap:8px;transform-origin:center center}
-        .floating .heart{font-size:36px;line-height:1}
-        .floating .text{font-size:16px;background:rgba(0,0,0,0.75);color:#fff;padding:6px 10px;border-radius:8px}
-        @keyframes popUp {
-            0%{transform:translateY(0) scale(0.4);opacity:0}
-            40%{transform:translateY(-8px) scale(1.2);opacity:1}
-            100%{transform:translateY(-48px) scale(1);opacity:0}
-        }
-        .animate{animation:popUp 3s cubic-bezier(.22,.9,.33,1) forwards}
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Ply - แอปวิดีโอสั้นสไตล์ใหม่สำหรับสร้างคอนเทนต์และชุมชน">
+  <meta name="theme-color" content="#111827">
+  <title>Ply • Short Video Social</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --surface: rgba(7, 17, 31, 0.9);
+      --surface-2: #111c2f;
+      --card: #16233d;
+      --text: #f5f7ff;
+      --muted: #90a0c0;
+      --accent: #7c5cff;
+      --accent-2: #00d4ff;
+      --success: #16a34a;
+      --danger: #ff5b7a;
+      --border: rgba(255,255,255,0.09);
+      --shadow: 0 20px 65px rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif; background: radial-gradient(circle at top left, #172644, var(--bg) 60%); color: var(--text); }
+    body { padding: 18px; }
+    button, input, textarea, select { font: inherit; }
+
+    .app-shell {
+      max-width: 1320px;
+      margin: 0 auto;
+      background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: 28px;
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+    }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 24px; border-bottom: 1px solid var(--border);
+      background: rgba(10, 15, 29, 0.8);
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-badge {
+      width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center;
+      font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white; font-size: 1.1rem;
+      box-shadow: 0 10px 24px rgba(124,92,255,0.28);
+    }
+    .brand h1 { margin: 0; font-size: 1.1rem; }
+    .brand p { margin: 2px 0 0; color: var(--muted); font-size: 0.86rem; }
+
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+    .icon-btn, .pill-btn, .nav-btn {
+      border: 0; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+    .icon-btn:hover, .pill-btn:hover, .nav-btn:hover { transform: translateY(-1px); }
+    .icon-btn {
+      width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.08); color: var(--text);
+    }
+    .pill-btn {
+      padding: 10px 14px; border-radius: 999px; color: var(--text); background: rgba(255,255,255,0.09);
+    }
+    .pill-btn.primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 10px 24px rgba(124,92,255,0.24);
+    }
+    .pill-btn.secondary { background: rgba(255,255,255,0.08); }
+
+    .layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 20px; }
+    .sidebar { display: flex; flex-direction: column; gap: 16px; }
+    .sidebar-card, .hero, .view-card, .video-card, .form-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 22px; box-shadow: var(--shadow);
+    }
+    .sidebar-card { padding: 18px; }
+    .avatar {
+      width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 1.25rem;
+      font-weight: 700; background: linear-gradient(135deg, #ffd166, #ff6b6b);
+    }
+    .sidebar-card h3 { margin: 0 0 10px; font-size: 1rem; }
+    .sidebar-card p { color: var(--muted); margin: 4px 0 0; }
+    .stats { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .stat-pill {
+      padding: 8px 10px; background: rgba(255,255,255,0.06); color: var(--text); border-radius: 999px; font-size: 0.9rem;
+    }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { padding: 7px 10px; border-radius: 999px; background: rgba(124,92,255,0.12); color: #cdbdff; font-size: 0.9rem; }
+
+    .content { display: flex; flex-direction: column; gap: 16px; }
+    .hero { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; padding: 24px; }
+    .hero h2 { margin: 8px 0 10px; font-size: clamp(1.3rem, 2.2vw, 1.8rem); line-height: 1.2; }
+    .hero p { color: var(--muted); margin: 0 0 14px; line-height: 1.6; }
+    .eyebrow { font-size: 0.84rem; letter-spacing: 0.12em; text-transform: uppercase; color: #9b8dff; font-weight: 700; }
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .hero-panel {
+      border-radius: 20px; padding: 16px; background: linear-gradient(160deg, rgba(124,92,255,0.18), rgba(0,212,255,0.16));
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .mini-card { padding: 12px 14px; background: rgba(255,255,255,0.1); border-radius: 16px; }
+    .mini-card strong { display: block; margin-bottom: 4px; }
+    .mini-card span { color: var(--muted); font-size: 0.9rem; }
+
+    .tab-bar { display: flex; gap: 8px; padding: 4px; background: rgba(255,255,255,0.04); border-radius: 999px; align-self: flex-start; }
+    .nav-btn { padding: 10px 14px; border-radius: 999px; background: transparent; color: var(--muted); }
+    .nav-btn.active { background: rgba(124,92,255,0.18); color: white; }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .feed-grid, .grid-clip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .video-card { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+    .video-media {
+      position: relative; min-height: 280px; border-radius: 18px; overflow: hidden; background: linear-gradient(135deg, #2f4c8c, #111827 70%);
+      display: flex; align-items: flex-end; justify-content: flex-start; padding: 16px;
+      background-size: cover; background-position: center;
+    }
+    .video-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.55)); }
+    .video-media > * { position: relative; z-index: 1; }
+    .video-badge { display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 999px; background: rgba(0,0,0,0.55); font-size: 0.85rem; }
+    .video-meta { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+    .video-meta h4 { margin: 0 0 4px; font-size: 1rem; }
+    .video-meta p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+    .action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .action-btn { padding: 8px 10px; border-radius: 999px; background: rgba(255,255,255,0.08); color: var(--text); border: 0; cursor: pointer; }
+    .action-btn.active { background: rgba(255,91,122,0.2); color: #ffb4c4; }
+
+    .view-card { padding: 20px; }
+    .search-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .search-row input, .form-card input, .form-card textarea, .form-card select {
+      flex: 1; min-width: 180px; padding: 12px 14px; border: 1px solid rgba(255,255,255,0.1); color: var(--text); background: rgba(255,255,255,0.06); border-radius: 14px; }
+    .search-row input::placeholder, .form-card input::placeholder, .form-card textarea::placeholder { color: #7d8ca8; }
+    .results-list { display: grid; gap: 12px; margin-top: 14px; }
+    .result-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,0.05); }
+    .result-item strong { display: block; }
+    .result-item span { color: var(--muted); font-size: 0.9rem; }
+
+    .form-card { padding: 20px; display: grid; gap: 12px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-card textarea { min-height: 90px; resize: vertical; }
+    .upload-preview { min-height: 180px; border-radius: 18px; background: linear-gradient(135deg, rgba(124,92,255,0.25), rgba(0,212,255,0.18)); display: grid; place-items: center; color: #d9e5ff; font-weight: 700; }
+
+    .notif-list { display: grid; gap: 12px; }
+    .notif-item { padding: 14px; border-radius: 14px; background: rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .notif-item strong { display: block; }
+    .notif-item span { color: var(--muted); font-size: 0.92rem; }
+
+    .profile-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px; }
+    .profile-head .avatar { width: 74px; height: 74px; }
+    .clip-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+    .clip-box { min-height: 110px; border-radius: 16px; padding: 12px; background: linear-gradient(145deg, rgba(124,92,255,0.24), rgba(0,212,255,0.16)); color: white; display: flex; align-items: end; }
+
+    .mobile-nav { display: none; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .hero { grid-template-columns: 1fr; }
+      .feed-grid, .clip-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      body { padding: 0; }
+      .topbar { padding: 14px 16px; }
+      .layout { padding: 12px; }
+      .tab-bar { width: 100%; justify-content: space-between; overflow-x: auto; }
+      .mobile-nav {
+        display: flex; justify-content: space-around; gap: 8px; padding: 10px 12px 16px; border-top: 1px solid var(--border); background: rgba(7, 17, 31, 0.96);
+        position: sticky; bottom: 0;
+      }
+      .mobile-nav .nav-btn { padding: 8px 12px; }
+      .form-row { grid-template-columns: 1fr; }
+      .video-media { min-height: 240px; }
+    }
+  </style>
 </head>
 <body>
-    <main class="page">
-        <section class="card" id="welcome-card" role="main">
-            <h1>เว็บไซต์อย่างเป็นทางการ</h1>
-            <p class="lead">ยินดีต้อนรับสู่เว็บไซต์ของเรา กรุณายืนยันตัวตนก่อนเข้าถึงเนื้อหา</p>
-            <button id="cta" class="cta" aria-label="กดเพื่อยืนยันตัวตน">กดเพื่อยืนยันตัวตน</button>
-        </section>
-    </main>
-
-    <div id="verifyModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="verifyTitle">
-        <div class="modal-card">
-            <h2 id="verifyTitle">ยืนยันตัวตน</h2>
-            <p class="modal-lead">กรอกชื่อของคุณ และอายุ (ถ้ามี) เพื่อเข้าสู่เว็บไซต์</p>
-            <form id="verifyForm" novalidate>
-                <label for="name">ชื่อ</label>
-                <input id="name" name="name" type="text" placeholder="กรอกชื่อของคุณ" required>
-
-                <label for="age">อายุ (ไม่บังคับ)</label>
-                <input id="age" name="age" type="number" min="1" placeholder="กรอกอายุถ้ามี">
-
-                <button class="submit-btn" type="submit">ยืนยัน</button>
-            </form>
-            <div id="status" class="status hidden" aria-live="polite"></div>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-badge">P</div>
+        <div>
+          <h1>Ply</h1>
+          <p>Short video social • สร้างและเลื่อนดูในที่เดียว</p>
         </div>
-    </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="สลับธีม">☀️</button>
+        <button class="icon-btn" type="button" aria-label="ข้อความ">💬</button>
+        <button class="icon-btn" type="button" aria-label="แจ้งเตือน">🔔</button>
+        <button class="pill-btn primary" type="button" data-view="upload">อัปโหลด</button>
+      </div>
+    </header>
 
-    <script>
-        (function(){
-            const btn = document.getElementById('cta');
-            const modal = document.getElementById('verifyModal');
-            const form = document.getElementById('verifyForm');
-            const nameInput = document.getElementById('name');
-            const ageInput = document.getElementById('age');
-            const status = document.getElementById('status');
-            const card = document.getElementById('welcome-card');
-            const title = card.querySelector('h1');
-            const lead = card.querySelector('.lead');
+    <main class="layout">
+      <aside class="sidebar">
+        <section class="sidebar-card">
+          <div class="avatar">N</div>
+          <h3>นัทธินันท์</h3>
+          <p>@nattinun</p>
+          <div class="stats">
+            <span class="stat-pill">2.4K ผู้ติดตาม</span>
+            <span class="stat-pill">89 คลิป</span>
+            <span class="stat-pill">✔️ ยืนยันแล้ว</span>
+          </div>
+        </section>
+        <section class="sidebar-card">
+          <h3>แฮชแท็กยอดนิยม</h3>
+          <div class="tag-list">
+            <span class="tag">#dailyvibes</span>
+            <span class="tag">#creator</span>
+            <span class="tag">#travel</span>
+            <span class="tag">#music</span>
+          </div>
+        </section>
+      </aside>
 
-            function showHeartAnimation(){
-                const rect = btn.getBoundingClientRect();
-                const centerX = rect.left + rect.width/2;
-                const centerY = rect.top + rect.height/2;
+      <section class="content">
+        <section class="hero">
+          <div>
+            <div class="eyebrow">Ply • สังคมสั้นที่แรงและลื่นไหล</div>
+            <h2>เลื่อนดู คลิกถูกใจ แชร์ และสร้างสรรค์สั้น ๆ ที่สื่อความรู้สึกของคุณ</h2>
+            <p>ออกแบบใหม่ทั้งหมดเพื่อให้รู้สึกเหมือนแอปวิดีโอสั้นที่ใช้งานง่ายบนมือถือและคอมพิวเตอร์</p>
+            <div class="hero-actions">
+              <button class="pill-btn primary" type="button" data-view="upload">เริ่มอัปโหลด</button>
+              <button class="pill-btn secondary" type="button" data-view="search">ค้นหาคลิป</button>
+            </div>
+          </div>
+          <div class="hero-panel">
+            <div class="mini-card">
+              <strong>10K+ คลิปใหม่วันนี้</strong>
+              <span>ระบบแนะนำคลิปตามความสนใจของคุณ</span>
+            </div>
+            <div class="mini-card">
+              <strong>สดใหม่ทุกนาที</strong>
+              <span>แสดงผลรวดเร็วด้วยฟีดแบบเลื่อนขึ้น-ลง</span>
+            </div>
+            <div class="mini-card">
+              <strong>ตั้งค่าส่วนตัวได้</strong>
+              <span>สาธารณะหรือส่วนตัวตามความต้องการ</span>
+            </div>
+          </div>
+        </section>
 
-                const el = document.createElement('div');
-                el.className = 'floating animate';
-                el.style.left = (centerX - 60) + 'px';
-                el.style.top = (centerY - 40) + 'px';
-                el.innerHTML = '<div class="heart">❤️</div><div class="text">กำลังยืนยัน...</div>';
-                document.body.appendChild(el);
+        <div class="tab-bar" role="tablist" aria-label="เมนูหลัก">
+          <button class="nav-btn active" type="button" data-view="home">หน้าแรก</button>
+          <button class="nav-btn" type="button" data-view="search">ค้นหา</button>
+          <button class="nav-btn" type="button" data-view="upload">อัปโหลด</button>
+          <button class="nav-btn" type="button" data-view="notifications">แจ้งเตือน</button>
+          <button class="nav-btn" type="button" data-view="profile">โปรไฟล์</button>
+        </div>
 
-                setTimeout(()=>{
-                    el.remove();
-                }, 3000);
-            }
+        <section id="view-home" class="view active">
+          <div class="feed-grid">
+            <article class="video-card">
+              <div class="video-media" style="background-image:url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=900&q=80');">
+                <div class="video-badge">▶ 4.2K</div>
+              </div>
+              <div class="video-meta">
+                <div>
+                  <h4>Sunset in the city</h4>
+                  <p>@mimii • 2 นาทีที่แล้ว</p>
+                </div>
+              </div>
+              <div class="action-row">
+                <button class="action-btn like-btn active" type="button">❤ 128</button>
+                <button class="action-btn" type="button">💬 24</button>
+                <button class="action-btn" type="button">↗ 9</button>
+                <button class="action-btn" type="button">🔖</button>
+              </div>
+            </article>
 
-            function resetStatus(){
-                status.className = 'status hidden';
-                status.innerHTML = '';
-            }
+            <article class="video-card">
+              <div class="video-media" style="background-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80');">
+                <div class="video-badge">▶ 8.1K</div>
+              </div>
+              <div class="video-meta">
+                <div>
+                  <h4>Morning routine</h4>
+                  <p>@zoe • 8 นาทีที่แล้ว</p>
+                </div>
+              </div>
+              <div class="action-row">
+                <button class="action-btn like-btn" type="button">❤ 315</button>
+                <button class="action-btn" type="button">💬 52</button>
+                <button class="action-btn" type="button">↗ 14</button>
+                <button class="action-btn" type="button">🔖</button>
+              </div>
+            </article>
+          </div>
+        </section>
 
-            function showStatus(type, message, icon){
-                status.className = `status ${type}`;
-                status.innerHTML = `<span class="icon">${icon}</span><span>${message}</span>`;
-            }
+        <section id="view-search" class="view">
+          <div class="view-card">
+            <div class="search-row">
+              <input id="searchInput" type="text" placeholder="ค้นหาผู้ใช้ คลิป หรือแฮชแท็ก">
+              <button class="pill-btn primary" id="searchBtn" type="button">ค้นหา</button>
+            </div>
+            <div class="results-list" id="searchResults">
+              <div class="result-item">
+                <div>
+                  <strong>ผู้ใช้: @nattinun</strong>
+                  <span>ครีเอเตอร์แนวไลฟ์สไตล์และความบันเทิง</span>
+                </div>
+                <span>ผู้ติดตาม 2.4K</span>
+              </div>
+              <div class="result-item">
+                <div>
+                  <strong>คลิป: Sunset in the city</strong>
+                  <span>#dailyvibes #travel</span>
+                </div>
+                <span>พร้อมดู</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
-            btn.addEventListener('click', function(){
-                showHeartAnimation();
-                resetStatus();
-                modal.classList.remove('hidden');
-                nameInput.focus();
-            });
+        <section id="view-upload" class="view">
+          <div class="form-card">
+            <div class="upload-preview">อัปโหลดคลิปของคุณ</div>
+            <div class="form-row">
+              <input type="text" placeholder="ชื่อคลิป" aria-label="ชื่อคลิป">
+              <input type="text" placeholder="แฮชแท็ก เช่น #music #vlog" aria-label="แฮชแท็ก">
+            </div>
+            <textarea placeholder="คำอธิบายคลิป" aria-label="คำอธิบายคลิป"></textarea>
+            <div class="form-row">
+              <select aria-label="สถานะความเป็นส่วนตัว">
+                <option>สาธารณะ</option>
+                <option>เพื่อนเท่านั้น</option>
+                <option>ส่วนตัว</option>
+              </select>
+              <input type="text" placeholder="ลิงก์ภาพปก" aria-label="ภาพปก">
+            </div>
+            <button class="pill-btn primary" type="button">บันทึกคลิป</button>
+          </div>
+        </section>
 
-            form.addEventListener('submit', function(e){
-                e.preventDefault();
-                const name = nameInput.value.trim();
-                const age = ageInput.value.trim();
+        <section id="view-notifications" class="view">
+          <div class="view-card">
+            <h3 style="margin-top:0">การแจ้งเตือน</h3>
+            <div class="notif-list">
+              <div class="notif-item">
+                <div>
+                  <strong>มีคนกดไลก์คลิปของคุณ</strong>
+                  <span>mimi แก้ไขคลิปของคุณ 1 ชั่วโมงที่แล้ว</span>
+                </div>
+                <span>ใหม่</span>
+              </div>
+              <div class="notif-item">
+                <div>
+                  <strong>มีคนติดตามคุณ</strong>
+                  <span>zoe เริ่มติดตามคุณ</span>
+                </div>
+                <span>3 นาทีที่แล้ว</span>
+              </div>
+              <div class="notif-item">
+                <div>
+                  <strong>ระบบแจ้งเตือน</strong>
+                  <span>อัปเดตความปลอดภัยของบัญชีแล้ว</span>
+                </div>
+                <span>วันนี้</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
-                if (!name) {
-                    showStatus('error', 'ยืนยันไม่สำเร็จ กรุณากรอกชื่อของคุณ', '✖');
-                    return;
-                }
+        <section id="view-profile" class="view">
+          <div class="view-card">
+            <div class="profile-head">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="avatar">N</div>
+                <div>
+                  <h3 style="margin:0">นัทธินันท์</h3>
+                  <p style="margin:4px 0 0;color:var(--muted)">@nattinun • 89 คลิป</p>
+                </div>
+              </div>
+              <button class="pill-btn secondary" type="button">แก้ไขโปรไฟล์</button>
+            </div>
+            <div class="stats">
+              <span class="stat-pill">2.4K ผู้ติดตาม</span>
+              <span class="stat-pill">320 กำลังติดตาม</span>
+              <span class="stat-pill">8.9K ถูกใจ</span>
+            </div>
+            <div class="clip-grid">
+              <div class="clip-box">คลิป 1</div>
+              <div class="clip-box">คลิป 2</div>
+              <div class="clip-box">คลิป 3</div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
 
-                showStatus('success', 'เฮ้ คุณยืนยันเรียบร้อยแล้ว', '✓');
+  <div class="mobile-nav" aria-label="เมนูล่าง">
+    <button class="nav-btn active" type="button" data-view="home">🏠</button>
+    <button class="nav-btn" type="button" data-view="search">🔎</button>
+    <button class="nav-btn" type="button" data-view="upload">＋</button>
+    <button class="nav-btn" type="button" data-view="notifications">🔔</button>
+    <button class="nav-btn" type="button" data-view="profile">👤</button>
+  </div>
 
-                setTimeout(function(){
-                    modal.classList.add('hidden');
-                    title.textContent = 'ยินดีต้อนรับคุณ ' + name;
-                    lead.textContent = age ? 'การยืนยันตัวตนสำเร็จแล้ว คุณสามารถใช้งานเว็บไซต์ได้เลย' : 'การยืนยันตัวตนสำเร็จแล้ว คุณสามารถใช้งานเว็บไซต์ได้เลย';
-                    btn.textContent = 'เข้าหน้าเว็บแล้ว';
-                    btn.disabled = true;
-                }, 1200);
-            });
-        })();
-    </script>
+  <script>
+    const navButtons = document.querySelectorAll('[data-view]');
+    const views = document.querySelectorAll('.view');
+    const themeToggle = document.getElementById('themeToggle');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const searchResults = document.getElementById('searchResults');
+    const likeButtons = document.querySelectorAll('.like-btn');
+
+    function switchView(target) {
+      views.forEach(view => view.classList.toggle('active', view.id === `view-${target}`));
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.view === target));
+    }
+
+    navButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.view) {
+          switchView(btn.dataset.view);
+        }
+      });
+    });
+
+    likeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('active');
+        const current = Number(btn.textContent.match(/\d+/)?.[0] || 0);
+        const next = btn.classList.contains('active') ? current + 1 : current - 1;
+        btn.innerHTML = `❤ ${next}`;
+      });
+    });
+
+    themeToggle.addEventListener('click', () => {
+      const root = document.documentElement;
+      const isDark = root.style.getPropertyValue('--bg') === '#07111f';
+      root.style.setProperty('--bg', isDark ? '#f4f7ff' : '#07111f');
+      root.style.setProperty('--text', isDark ? '#111827' : '#f5f7ff');
+      root.style.setProperty('--surface', isDark ? 'rgba(255,255,255,0.9)' : 'rgba(7,17,31,0.9)');
+      root.style.setProperty('--surface-2', isDark ? '#f8fafc' : '#111c2f');
+      root.style.setProperty('--card', isDark ? '#ffffff' : '#16233d');
+      root.style.setProperty('--muted', isDark ? '#475569' : '#90a0c0');
+      root.style.setProperty('--border', isDark ? 'rgba(15,23,42,0.08)' : 'rgba(255,255,255,0.09)');
+      themeToggle.textContent = isDark ? '🌙' : '☀️';
+    });
+
+    function runSearch() {
+      const value = searchInput.value.trim().toLowerCase();
+      if (!value) {
+        searchResults.innerHTML = '<div class="result-item"><div><strong>กรอกคำค้นหา</strong><span>ลองค้นหาผู้ใช้ คลิป หรือแฮชแท็ก</span></div></div>';
+        return;
+      }
+      const results = [
+        { title: `ผู้ใช้: @${value}`, detail: 'ครีเอเตอร์ที่คุณอาจชอบ', meta: 'ผู้ติดตาม 1.2K' },
+        { title: `คลิป: ${value} vibes`, detail: '#dailyvibes #creator', meta: 'พร้อมดู' }
+      ];
+      searchResults.innerHTML = results.map(item => `
+        <div class="result-item">
+          <div>
+            <strong>${item.title}</strong>
+            <span>${item.detail}</span>
+          </div>
+          <span>${item.meta}</span>
+        </div>
+      `).join('');
+    }
+
+    searchBtn.addEventListener('click', runSearch);
+    searchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') runSearch();
+    });
+  </script>
 </body>
 </html>
