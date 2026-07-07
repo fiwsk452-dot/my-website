@@ -462,10 +462,13 @@
                   <p id="profileHandle" style="margin:4px 0 0;color:var(--muted)">@nattinun • 89 คลิป</p>
                 </div>
               </div>
-              <button class="pill-btn secondary" id="editProfileBtn" type="button">แก้ไขโปรไฟล์</button>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                <button class="pill-btn secondary" id="editProfileBtn" type="button">แก้ไขโปรไฟล์</button>
+                <button class="pill-btn primary" id="followBtn" type="button">เพิ่มผู้ติดตาม</button>
+              </div>
             </div>
             <div class="stats">
-              <span class="stat-pill" id="profileFollowers">2.4K ผู้ติดตาม</span>
+              <span class="stat-pill" id="profileFollowers">0 ผู้ติดตาม</span>
               <span class="stat-pill" id="profileFollowing">320 กำลังติดตาม</span>
               <span class="stat-pill" id="profileLikes">8.9K ถูกใจ</span>
             </div>
@@ -531,9 +534,15 @@
     const uploadBtn = document.getElementById('uploadBtn');
     const uploadResult = document.getElementById('uploadResult');
     const editProfileBtn = document.getElementById('editProfileBtn');
+    const followBtn = document.getElementById('followBtn');
     const sidebarFollowers = document.getElementById('sidebarFollowers');
     const sidebarClips = document.getElementById('sidebarClips');
-    const currentAccount = { name: 'นัทธินันท์', handle: '@nattinun', age: 21, email: 'nattinun@example.com', created: 2022, verified: false };
+    const currentAccount = { name: 'นัทธินันท์', handle: '@nattinun', age: 21, email: 'nattinun@example.com', created: 2022, verified: false, followers: 0, clips: 89 };
+
+    function setActiveView(target) {
+      views.forEach(view => view.classList.toggle('active', view.id === `view-${target}`));
+      navButtons.forEach(nav => nav.classList.toggle('active', nav.dataset.view === target));
+    }
 
     document.querySelectorAll('[data-view]').forEach(button => {
       button.addEventListener('click', () => {
@@ -582,7 +591,10 @@
       sidebarName.textContent = name;
       sidebarHandle.textContent = handle;
       profileName.textContent = name;
-      profileHandle.textContent = `${handle} • 89 คลิป`;
+      profileHandle.textContent = `${handle} • ${currentAccount.clips} คลิป`;
+      sidebarFollowers.textContent = `${currentAccount.followers} ผู้ติดตาม`;
+      profileFollowers.textContent = `${currentAccount.followers} ผู้ติดตาม`;
+      sidebarClips.textContent = `${currentAccount.clips} คลิป`;
       sidebarVerify.textContent = verified ? 'ยืนยันแล้ว' : 'ยังไม่ได้ยืนยัน';
       verifyBadge.innerHTML = verified ? '<span>✔️</span><span>สถานะบัญชี: ยืนยันแล้ว</span>' : '<span>✖</span><span>สถานะบัญชี: ยังไม่ได้ยืนยัน</span>';
     }
@@ -600,6 +612,7 @@
       currentAccount.verified = false;
       showStatus(verifyResult, true, `สมัครสำเร็จ ${result.name} (${result.handle})`);
       updateProfile(result.name, result.handle, false);
+      setActiveView('home');
     });
 
     verifyBtn.addEventListener('click', () => {
@@ -710,14 +723,19 @@
         showStatus(uploadResult, false, 'กรุณากรอกชื่อคลิป');
         return;
       }
+      currentAccount.clips += 1;
       showStatus(uploadResult, true, `บันทึกคลิป "${title}" เรียบร้อยแล้ว`);
-      sidebarClips.textContent = `${Number(sidebarClips.textContent.replace(/\D/g, '')) + 1} คลิป`;
+      updateProfile(currentAccount.name, currentAccount.handle, currentAccount.verified);
+    });
+
+    followBtn.addEventListener('click', () => {
+      currentAccount.followers += 1;
+      updateProfile(currentAccount.name, currentAccount.handle, currentAccount.verified);
+      showStatus(verifyResult, true, `มีผู้ติดตามใหม่ +1 คน ตอนนี้มี ${currentAccount.followers} ผู้ติดตาม`);
     });
 
     editProfileBtn.addEventListener('click', () => {
-      document.querySelector('[data-view="profile"]').classList.add('active');
-      navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.view === 'profile'));
-      views.forEach(view => view.classList.toggle('active', view.id === 'view-profile'));
+      setActiveView('profile');
     });
 
     updateProfile(currentAccount.name, currentAccount.handle, currentAccount.verified);
