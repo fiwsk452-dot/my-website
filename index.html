@@ -29,6 +29,7 @@
 
     .app-shell {
       max-width: 1320px;
+      height: calc(100vh - 36px);
       margin: 0 auto;
       background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
       border: 1px solid var(--border);
@@ -36,6 +37,8 @@
       border-radius: 28px;
       overflow: hidden;
       backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
     }
 
     .topbar {
@@ -71,7 +74,7 @@
     }
     .pill-btn.secondary { background: rgba(255,255,255,0.08); }
 
-    .layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 20px; }
+    .layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 20px; min-height: 0; flex: 1; overflow: hidden; }
     .sidebar { display: flex; flex-direction: column; gap: 16px; }
     .sidebar-card, .hero, .view-card, .video-card, .form-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 22px; box-shadow: var(--shadow);
@@ -90,7 +93,7 @@
     .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
     .tag { padding: 7px 10px; border-radius: 999px; background: rgba(124,92,255,0.12); color: #cdbdff; font-size: 0.9rem; }
 
-    .content { display: flex; flex-direction: column; gap: 16px; }
+    .content { display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow: hidden; }
     .hero { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; padding: 24px; }
     .hero h2 { margin: 8px 0 10px; font-size: clamp(1.3rem, 2.2vw, 1.8rem); line-height: 1.2; }
     .hero p { color: var(--muted); margin: 0 0 14px; line-height: 1.6; }
@@ -112,6 +115,12 @@
     .view.active { display: block; }
 
     .feed-grid, .grid-clip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .view.active { display: block; }
+    .feed-grid {
+      max-height: calc(100vh - 520px);
+      overflow-y: auto;
+      padding-right: 6px;
+    }
     .video-card { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
     .video-media {
       position: relative; min-height: 280px; border-radius: 18px; overflow: hidden; background: linear-gradient(135deg, #2f4c8c, #111827 70%);
@@ -287,6 +296,57 @@
                 <button class="action-btn like-btn" type="button">❤ 315</button>
                 <button class="action-btn" type="button">💬 52</button>
                 <button class="action-btn" type="button">↗ 14</button>
+                <button class="action-btn" type="button">🔖</button>
+              </div>
+            </article>
+            <article class="video-card">
+              <div class="video-media" style="background-image:url('https://images.unsplash.com/photo-1510511459019-5dda7724fd87?auto=format&fit=crop&w=900&q=80');">
+                <div class="video-badge">▶ 5.7K</div>
+              </div>
+              <div class="video-meta">
+                <div>
+                  <h4>Dance challenge</h4>
+                  <p>@mint • 15 นาทีที่แล้ว</p>
+                </div>
+              </div>
+              <div class="action-row">
+                <button class="action-btn like-btn" type="button">❤ 402</button>
+                <button class="action-btn" type="button">💬 68</button>
+                <button class="action-btn" type="button">↗ 23</button>
+                <button class="action-btn" type="button">🔖</button>
+              </div>
+            </article>
+            <article class="video-card">
+              <div class="video-media" style="background-image:url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80');">
+                <div class="video-badge">▶ 3.9K</div>
+              </div>
+              <div class="video-meta">
+                <div>
+                  <h4>Mini travel hacks</h4>
+                  <p>@golf • 23 นาทีที่แล้ว</p>
+                </div>
+              </div>
+              <div class="action-row">
+                <button class="action-btn like-btn" type="button">❤ 187</button>
+                <button class="action-btn" type="button">💬 31</button>
+                <button class="action-btn" type="button">↗ 10</button>
+                <button class="action-btn" type="button">🔖</button>
+              </div>
+            </article>
+            <article class="video-card">
+              <div class="video-media" style="background-image:url('https://images.unsplash.com/photo-1519985176271-adb1088fa94c?auto=format&fit=crop&w=900&q=80');">
+                <div class="video-badge">▶ 11K</div>
+              </div>
+              <div class="video-meta">
+                <div>
+                  <h4>Food review bit</h4>
+                  <p>@tiny • 41 นาทีที่แล้ว</p>
+                </div>
+              </div>
+              <div class="action-row">
+                <button class="action-btn like-btn" type="button">❤ 512</button>
+                <button class="action-btn" type="button">💬 75</button>
+                <button class="action-btn" type="button">↗ 29</button>
                 <button class="action-btn" type="button">🔖</button>
               </div>
             </article>
