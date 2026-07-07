@@ -107,6 +107,18 @@
     .mini-card strong { display: block; margin-bottom: 4px; }
     .mini-card span { color: var(--muted); font-size: 0.9rem; }
 
+    .auth-card { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); }
+    .auth-card h3 { margin-top: 0; }
+    .auth-form { display: grid; gap: 12px; }
+    .auth-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .auth-form input[type="number"] { max-width: 160px; }
+    .auth-form .status { margin-top: 0; }
+    .activity-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .activity-button, .setting-card { flex: 1; min-width: 140px; padding: 12px 14px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.05); color: var(--text); cursor: pointer; text-align: left; }
+    .activity-button.active, .setting-card.active { background: rgba(124,92,255,0.22); border-color: rgba(124,92,255,0.4); }
+    .setting-panel { margin-top: 14px; padding: 16px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+    .setting-panel h4 { margin: 0 0 10px; }
+
     .tab-bar { display: flex; gap: 8px; padding: 4px; background: rgba(255,255,255,0.04); border-radius: 999px; align-self: flex-start; }
     .nav-btn { padding: 10px 14px; border-radius: 999px; background: transparent; color: var(--muted); }
     .nav-btn.active { background: rgba(124,92,255,0.18); color: white; }
@@ -254,9 +266,32 @@
           </div>
         </section>
 
+        <section class="auth-card">
+          <h3>สมัครและยืนยันตัวตน</h3>
+          <div class="auth-form">
+            <div class="form-row">
+              <input id="accountName" type="text" placeholder="ชื่อที่ต้องการแสดง" aria-label="ชื่อที่ต้องการแสดง">
+              <input id="accountHandle" type="text" placeholder="@username" aria-label="ชื่อบัญชี @username">
+            </div>
+            <div class="form-row">
+              <input id="accountAge" type="number" min="13" placeholder="อายุ" aria-label="อายุ">
+              <input id="accountEmail" type="email" placeholder="อีเมล" aria-label="อีเมล">
+            </div>
+            <div class="action-row">
+              <button id="registerBtn" class="pill-btn primary" type="button">สมัครสมาชิก</button>
+              <button id="verifyBtn" class="pill-btn secondary" type="button">ยืนยันตัวตน</button>
+            </div>
+            <div id="verifyResult" class="status hidden" aria-live="polite"></div>
+            <div id="verifyBadge" style="margin-top:12px; color:#a3f7bf; font-weight:700; display:flex; align-items:center; gap:8px;">
+              <span style="font-size:1.1rem;">✔️</span><span>สถานะบัญชี: ยังไม่ได้ยืนยัน</span>
+            </div>
+          </div>
+        </section>
+
         <div class="tab-bar" role="tablist" aria-label="เมนูหลัก">
           <button class="nav-btn active" type="button" data-view="home">หน้าแรก</button>
           <button class="nav-btn" type="button" data-view="search">ค้นหา</button>
+          <button class="nav-btn" type="button" data-view="activity">กิจกรรม</button>
           <button class="nav-btn" type="button" data-view="upload">อัปโหลด</button>
           <button class="nav-btn" type="button" data-view="notifications">แจ้งเตือน</button>
           <button class="nav-btn" type="button" data-view="profile">โปรไฟล์</button>
@@ -378,6 +413,26 @@
           </div>
         </section>
 
+        <section id="view-activity" class="view">
+          <div class="view-card">
+            <h3 style="margin-top:0">ศูนย์กิจกรรม</h3>
+            <div class="activity-controls">
+              <button class="activity-button active" data-activity="watch" type="button">ประวัติการดู</button>
+              <button class="activity-button" data-activity="chat" type="button">ประวัติแชท</button>
+              <button class="activity-button" data-activity="account" type="button">ประวัติบัญชี</button>
+            </div>
+            <div id="activityContent" class="setting-panel">
+              <h4>ประวัติการดู</h4>
+              <p>คลิปที่คุณดูเมื่อเร็ว ๆ นี้จะปรากฏที่นี่ เช่น:</p>
+              <ul style="margin:0;padding-left:18px;color:var(--text)">
+                <li>Sunset in the city</li>
+                <li>Morning routine</li>
+                <li>Dance challenge</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
         <section id="view-upload" class="view">
           <div class="form-card">
             <div class="upload-preview">อัปโหลดคลิปของคุณ</div>
@@ -433,16 +488,31 @@
               <div style="display:flex;align-items:center;gap:12px;">
                 <div class="avatar">N</div>
                 <div>
-                  <h3 style="margin:0">นัทธินันท์</h3>
-                  <p style="margin:4px 0 0;color:var(--muted)">@nattinun • 89 คลิป</p>
+                  <h3 id="profileName" style="margin:0">นัทธินันท์</h3>
+                  <p id="profileHandle" style="margin:4px 0 0;color:var(--muted)">@nattinun • 89 คลิป</p>
                 </div>
               </div>
               <button class="pill-btn secondary" type="button">แก้ไขโปรไฟล์</button>
             </div>
             <div class="stats">
-              <span class="stat-pill">2.4K ผู้ติดตาม</span>
-              <span class="stat-pill">320 กำลังติดตาม</span>
-              <span class="stat-pill">8.9K ถูกใจ</span>
+              <span class="stat-pill" id="profileFollowers">2.4K ผู้ติดตาม</span>
+              <span class="stat-pill" id="profileFollowing">320 กำลังติดตาม</span>
+              <span class="stat-pill" id="profileLikes">8.9K ถูกใจ</span>
+            </div>
+            <div class="setting-panel">
+              <h4>การตั้งค่าความเป็นส่วนตัว</h4>
+              <div class="activity-controls">
+                <button class="setting-card active" data-setting="privacy" type="button">ความเป็นส่วนตัว</button>
+                <button class="setting-card" data-setting="notifications" type="button">จัดการการแจ้งเตือน</button>
+                <button class="setting-card" data-setting="security" type="button">ความปลอดภัยของบัญชี</button>
+                <button class="setting-card" data-setting="language" type="button">ภาษา</button>
+                <button class="setting-card" data-setting="theme" type="button">ธีมมืด/สว่าง</button>
+                <button class="setting-card" data-setting="block" type="button">บล็อกผู้ใช้</button>
+              </div>
+              <div id="settingsDetail" class="setting-panel" style="margin-top:12px; padding:14px;">
+                <h4>ความเป็นส่วนตัว</h4>
+                <p>ควบคุมว่าใครสามารถดูคลิปและข้อความของคุณได้ พร้อมตัวเลือกต่าง ๆ เช่นบัญชีสาธารณะหรือส่วนตัว</p>
+              </div>
             </div>
             <div class="clip-grid">
               <div class="clip-box">คลิป 1</div>
@@ -471,6 +541,20 @@
     const searchBtn = document.getElementById('searchBtn');
     const searchResults = document.getElementById('searchResults');
     const likeButtons = document.querySelectorAll('.like-btn');
+    const accountNameInput = document.getElementById('accountName');
+    const accountHandleInput = document.getElementById('accountHandle');
+    const accountAgeInput = document.getElementById('accountAge');
+    const accountEmailInput = document.getElementById('accountEmail');
+    const registerBtn = document.getElementById('registerBtn');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const verifyResult = document.getElementById('verifyResult');
+    const profileNameElement = document.getElementById('profileName');
+    const profileHandleElement = document.getElementById('profileHandle');
+    const activityButtons = document.querySelectorAll('[data-activity]');
+    const activityContent = document.getElementById('activityContent');
+    const settingsButtons = document.querySelectorAll('[data-setting]');
+    const settingsDetail = document.getElementById('settingsDetail');
+    let currentAccount = { name: 'นัทธินันท์', handle: '@nattinun', age: 21, created: 2022, email: 'nattinun@example.com' };
 
     function switchView(target) {
       views.forEach(view => view.classList.toggle('active', view.id === `view-${target}`));
@@ -532,6 +616,134 @@
     searchInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') runSearch();
     });
+
+    function updateProfileHeader(name, handle) {
+      if (profileNameElement) profileNameElement.textContent = name;
+      if (profileHandleElement) profileHandleElement.textContent = `${handle} • 89 คลิป`;
+    }
+
+    function showVerifyResult(success, message) {
+      if (!verifyResult) return;
+      verifyResult.className = `status ${success ? 'success' : 'error'}`;
+      verifyResult.textContent = `${success ? '✓' : '✖'} ${message}`;
+      verifyResult.style.display = 'flex';
+      document.getElementById('verifyBadge').innerHTML = success
+        ? '<span style="font-size:1.1rem;">✔️</span><span>สถานะบัญชี: ยืนยันแล้ว</span>'
+        : '<span style="font-size:1.1rem;">✖</span><span>สถานะบัญชี: ไม่ผ่านการยืนยัน</span>';
+    }
+
+    function validateAccount() {
+      const name = accountNameInput.value.trim();
+      const handleRaw = accountHandleInput.value.trim();
+      const handle = handleRaw.replace(/^@/, '');
+      const age = Number(accountAgeInput.value);
+      const email = accountEmailInput.value.trim();
+
+      if (!name) return { valid: false, message: 'กรุณากรอกชื่อที่ต้องการแสดง' };
+      if (!handle || handle.length < 3) return { valid: false, message: 'กรุณากรอกชื่อแอค @username ให้ถูกต้อง' };
+      if (!age || age < 13) return { valid: false, message: 'อายุต้องมากกว่า 12 ปีขึ้นไป' };
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { valid: false, message: 'กรุณากรอกอีเมลที่ถูกต้อง' };
+
+      return { valid: true, name, handle: `@${handle}`, age, email };
+    }
+
+    registerBtn.addEventListener('click', () => {
+      const result = validateAccount();
+      if (!result.valid) {
+        showVerifyResult(false, result.message);
+        return;
+      }
+      currentAccount = { ...currentAccount, ...result, created: 2024 };
+      showVerifyResult(true, `สมัครสำเร็จ ${result.name} (${result.handle})`);
+      updateProfileHeader(result.name, result.handle);
+    });
+
+    verifyBtn.addEventListener('click', () => {
+      const result = validateAccount();
+      if (!result.valid) {
+        showVerifyResult(false, `ไม่ผ่านการยืนยัน: ${result.message}`);
+        return;
+      }
+      const passed = result.age >= 13 && result.name.length >= 2;
+      showVerifyResult(passed, passed ? `ผ่านการยืนยัน ✅ ชื่อบัญชี ${result.handle}` : 'ไม่ผ่านการยืนยัน: ข้อมูลไม่ครบถ้วน');
+      if (passed) {
+        currentAccount = { ...currentAccount, ...result, created: 2024 };
+        updateProfileHeader(result.name, result.handle);
+      }
+    });
+
+    activityButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        activityButtons.forEach(btn => btn.classList.toggle('active', btn === button));
+        const type = button.dataset.activity;
+        if (type === 'watch') {
+          activityContent.innerHTML = `
+            <h4>ประวัติการดู</h4>
+            <p>คลิปล่าสุดของคุณ:</p>
+            <ul style="margin:0;padding-left:18px;color:var(--text)">
+              <li>Sunset in the city</li>
+              <li>Morning routine</li>
+              <li>Dance challenge</li>
+            </ul>`;
+        } else if (type === 'chat') {
+          activityContent.innerHTML = `
+            <h4>ประวัติแชท</h4>
+            <p>ข้อความล่าสุดจากเพื่อนและครีเอเตอร์:</p>
+            <ul style="margin:0;padding-left:18px;color:var(--text)">
+              <li>พูดคุยกับ @mimii เรื่องไอเดียคลิป</li>
+              <li>ตอบกลับ @zoe ในข้อความส่วนตัว</li>
+              <li>แจ้งเตือนกลุ่มกิจกรรม</li>
+            </ul>`;
+        } else {
+          activityContent.innerHTML = `
+            <h4>ประวัติบัญชี</h4>
+            <p>ข้อมูลบัญชีของคุณ:</p>
+            <ul style="margin:0;padding-left:18px;color:var(--text)">
+              <li>ชื่อจริง: ${currentAccount.name}</li>
+              <li>ชื่อบัญชี: ${currentAccount.handle}</li>
+              <li>อายุ: ${currentAccount.age} ปี</li>
+              <li>อีเมล: ${currentAccount.email}</li>
+              <li>สร้างบัญชีในปี: ${currentAccount.created}</li>
+            </ul>`;
+        }
+      });
+    });
+
+    settingsButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        settingsButtons.forEach(btn => btn.classList.toggle('active', btn === button));
+        const type = button.dataset.setting;
+        const details = {
+          privacy: {
+            title: 'ความเป็นส่วนตัว',
+            text: 'ควบคุมว่าใครสามารถดูคลิปและข้อความของคุณได้ พร้อมตัวเลือกบัญชีสาธารณะหรือส่วนตัว'
+          },
+          notifications: {
+            title: 'จัดการการแจ้งเตือน',
+            text: 'เลือกเปิดหรือปิดการแจ้งเตือนสำหรับไลก์ คอมเมนต์ ติดตาม และข้อความใหม่'
+          },
+          security: {
+            title: 'ความปลอดภัยของบัญชี',
+            text: 'เปลี่ยนรหัสผ่านและตรวจสอบอุปกรณ์ที่เข้าสู่ระบบได้อย่างปลอดภัย'
+          },
+          language: {
+            title: 'ภาษา',
+            text: 'เลือกภาษาไทยหรืออังกฤษ และปรับ UI ให้เข้ากับการใช้งานของคุณ'
+          },
+          theme: {
+            title: 'ธีมมืด/สว่าง',
+            text: 'สลับระหว่างธีมมืดและสว่างเพื่อการใช้งานที่สบายตา'
+          },
+          block: {
+            title: 'บล็อกผู้ใช้',
+            text: 'จัดการรายชื่อผู้ใช้ที่คุณไม่ต้องการให้ติดต่อหรือเห็นคลิปของคุณ'
+          }
+        };
+        settingsDetail.innerHTML = `<h4>${details[type].title}</h4><p>${details[type].text}</p>`;
+      });
+    });
+
+    updateProfileHeader(currentAccount.name, currentAccount.handle);
   </script>
 </body>
 </html>
