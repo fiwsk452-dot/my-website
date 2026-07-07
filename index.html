@@ -738,7 +738,8 @@
       setActiveView('profile');
     });
 
-    updateProfile(currentAccount.name, currentAccount.handle, currentAccount.verified);
+    updateProfileDisplay();
+    loadServerState();
   </script>
 </body>
 </html>
