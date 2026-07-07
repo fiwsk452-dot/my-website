@@ -16,13 +16,36 @@ const now = () => Date.now();
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
-// Register user
+// Register user (supports autoHandle: if handle taken and autoHandle=true, system will generate one)
 app.post('/api/register', (req, res) => {
-  const { name, handle, age, email } = req.body;
-  if (!name || !handle || !age || !email) return res.status(400).json({ error: 'missing' });
+  const { name, handle, age, email, autoHandle } = req.body;
+  if (!name || !age || !email) return res.status(400).json({ error: 'missing' });
+  // normalize handle if provided
+  let normalized = handle ? (handle.startsWith('@') ? handle : '@' + handle) : null;
   try {
+    if (normalized) {
+      const exists = db.prepare('SELECT id FROM users WHERE handle = ?').get(normalized);
+      if (exists) {
+        if (!autoHandle) return res.status(409).json({ error: 'handle_taken' });
+        // fallthrough to auto-generate
+        normalized = null;
+      }
+    }
+
+    if (!normalized) {
+      // generate handle from name
+      const base = String(name).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0,20) || 'user';
+      let tryHandle = '@' + base;
+      let suffix = 0;
+      while (db.prepare('SELECT id FROM users WHERE handle = ?').get(tryHandle)) {
+        suffix += 1;
+        tryHandle = '@' + base + suffix;
+      }
+      normalized = tryHandle;
+    }
+
     const stmt = db.prepare('INSERT INTO users (name, handle, age, email, verified, created_at) VALUES (?, ?, ?, ?, 0, ?)');
-    const info = stmt.run(name, handle.startsWith('@') ? handle : '@' + handle, age, email, now());
+    const info = stmt.run(name, normalized, age, email, now());
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(info.lastInsertRowid);
     return res.json({ ok: true, user });
   } catch (e) {
@@ -51,7 +74,19 @@ app.post('/api/follow', (req, res) => {
   const exists = db.prepare('SELECT * FROM follows WHERE follower_id = ? AND following_id = ?').get(follower.id, following.id);
   if (exists) return res.json({ ok: true, message: 'already following' });
   db.prepare('INSERT INTO follows (follower_id, following_id, created_at) VALUES (?, ?, ?)').run(follower.id, following.id, now());
-  return res.json({ ok: true });
+  // return updated follower count
+  const followers = db.prepare('SELECT COUNT(*) as c FROM follows WHERE following_id = ?').get(following.id).c;
+  return res.json({ ok: true, followers });
+});
+
+// Like a clip
+app.post('/api/clips/:id/like', (req, res) => {
+  const id = Number(req.params.id);
+  const clip = db.prepare('SELECT * FROM clips WHERE id = ?').get(id);
+  if (!clip) return res.status(404).json({ error: 'clip not found' });
+  db.prepare('UPDATE clips SET likes = likes + 1 WHERE id = ?').run(id);
+  const updated = db.prepare('SELECT likes FROM clips WHERE id = ?').get(id);
+  return res.json({ ok: true, likes: updated.likes });
 });
 
 // Get profile with follower count and clips

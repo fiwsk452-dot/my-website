@@ -507,13 +507,13 @@
   </div>
 
   <script>
+    const API_BASE = (window.API_BASE || 'http://localhost:3000') + '/api';
     const navButtons = document.querySelectorAll('.nav-btn');
     const views = document.querySelectorAll('.view');
     const themeToggle = document.getElementById('themeToggle');
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
     const searchResults = document.getElementById('searchResults');
-    const likeButtons = document.querySelectorAll('.like-btn');
     const accountNameInput = document.getElementById('accountName');
     const accountHandleInput = document.getElementById('accountHandle');
     const accountAgeInput = document.getElementById('accountAge');
@@ -537,207 +537,139 @@
     const followBtn = document.getElementById('followBtn');
     const sidebarFollowers = document.getElementById('sidebarFollowers');
     const sidebarClips = document.getElementById('sidebarClips');
-    const currentAccount = { name: 'นัทธินันท์', handle: '@nattinun', age: 21, email: 'nattinun@example.com', created: 2022, verified: false, followers: 0, clips: 89 };
+    const feedGrid = document.querySelector('.feed-grid');
+    const autoHandleCheckboxHtml = '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;"><input id="autoHandle" type="checkbox" checked> สร้าง @username อัตโนมัติถ้าซ้ำ</label>';
 
-    function setActiveView(target) {
-      views.forEach(view => view.classList.toggle('active', view.id === `view-${target}`));
-      navButtons.forEach(nav => nav.classList.toggle('active', nav.dataset.view === target));
-    }
+    // insert auto-handle checkbox into auth form
+    const authForm = document.querySelector('.auth-form');
+    if (authForm && !document.getElementById('autoHandle')) authForm.insertAdjacentHTML('beforeend', autoHandleCheckboxHtml);
 
-    document.querySelectorAll('[data-view]').forEach(button => {
-      button.addEventListener('click', () => {
-        const target = button.dataset.view;
-        if (!target) return;
-        views.forEach(view => view.classList.toggle('active', view.id === `view-${target}`));
-        navButtons.forEach(nav => nav.classList.toggle('active', nav.dataset.view === target));
-      });
-    });
+    const autoHandle = () => document.getElementById('autoHandle')?.checked;
 
-    likeButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        btn.classList.toggle('active');
-        const number = Number(btn.textContent.match(/\d+/)?.[0] || 0);
-        const newNumber = btn.classList.contains('active') ? number + 1 : Math.max(number - 1, 0);
-        btn.textContent = `❤ ${newNumber}`;
-      });
-    });
+    const currentAccount = { name: 'นัทธินันท์', handle: '@nattinun', age: 21, email: 'nattinun@example.com', created: 2022, verified: false, followers: 0, clips: 0 };
 
-    themeToggle.addEventListener('click', () => {
-      document.body.classList.toggle('light');
-      const isLight = document.body.classList.contains('light');
-      document.body.style.background = isLight ? '#f5f7ff' : 'radial-gradient(circle at top left, #172644, var(--bg) 60%)';
-      themeToggle.textContent = isLight ? '🌙' : '☀️';
-    });
+    function apiFetch(path, opts) { return fetch(API_BASE + path, opts).then(r => r.json()); }
 
-    function showStatus(element, success, message) {
-      element.className = `status ${success ? 'success' : 'error'} show`;
-      element.textContent = `${success ? '✓' : '✖'} ${message}`;
-    }
+    function setActiveView(target) { views.forEach(view => view.classList.toggle('active', view.id === `view-${target}`)); navButtons.forEach(nav => nav.classList.toggle('active', nav.dataset.view === target)); }
+    document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => setActiveView(b.dataset.view)));
 
-    function validateAccount() {
+    function showStatus(element, success, message) { element.className = `status ${success ? 'success' : 'error'} show`; element.textContent = `${success ? '✓' : '✖'} ${message}`; }
+
+    function validateAccountInputs() {
       const name = accountNameInput.value.trim();
       const handleRaw = accountHandleInput.value.trim();
       const handle = handleRaw.replace(/^@/, '');
       const age = Number(accountAgeInput.value);
       const email = accountEmailInput.value.trim();
       if (!name) return { valid: false, message: 'กรุณากรอกชื่อที่ต้องการแสดง' };
-      if (!handle || handle.length < 3) return { valid: false, message: 'กรุณากรอกชื่อบัญชีที่ถูกต้อง' };
+      if (!handle || handle.length < 2) return { valid: false, message: 'กรุณากรอกชื่อบัญชีอย่างน้อย 2 ตัวอักษร' };
       if (!age || age < 13) return { valid: false, message: 'อายุต้องมากกว่า 12 ปี' };
       if (!email || !/^\S+@\S+\.\S+$/.test(email)) return { valid: false, message: 'กรุณากรอกอีเมลที่ถูกต้อง' };
       return { valid: true, name, handle: `@${handle}`, age, email };
     }
 
-    function updateProfile(name, handle, verified) {
-      sidebarName.textContent = name;
-      sidebarHandle.textContent = handle;
-      profileName.textContent = name;
-      profileHandle.textContent = `${handle} • ${currentAccount.clips} คลิป`;
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" })[c]); }
+
+    function renderFeed(clips) {
+      if (!feedGrid) return;
+      feedGrid.innerHTML = clips.map(c => `
+        <article class="video-card" data-id="${c.id}">
+          <div class="video-media" style="background-image:url('${escapeHtml(c.cover||'')}');">
+            <div class="video-badge">▶ ${c.likes}</div>
+          </div>
+          <div class="video-meta">
+            <div>
+              <h4>${escapeHtml(c.title)}</h4>
+              <p>${escapeHtml(c.handle)} •</p>
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="action-btn like-btn" data-id="${c.id}" type="button">❤ ${c.likes}</button>
+            <button class="action-btn" type="button">💬 0</button>
+            <button class="action-btn" type="button">↗ 0</button>
+            <button class="action-btn" type="button">🔖</button>
+          </div>
+        </article>`).join('\n');
+
+      // attach like handlers
+      document.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          apiFetch(`/clips/${encodeURIComponent(id)}/like`, { method: 'POST' }).then(r => {
+            if (r && r.likes !== undefined) btn.textContent = `❤ ${r.likes}`;
+          }).catch(()=>{});
+        });
+      });
+    }
+
+    function updateProfileDisplay() {
+      sidebarName.textContent = currentAccount.name;
+      sidebarHandle.textContent = currentAccount.handle;
+      profileName.textContent = currentAccount.name;
+      profileHandle.textContent = `${currentAccount.handle} • ${currentAccount.clips} คลิป`;
       sidebarFollowers.textContent = `${currentAccount.followers} ผู้ติดตาม`;
-      profileFollowers.textContent = `${currentAccount.followers} ผู้ติดตาม`;
+      document.getElementById('profileFollowers').textContent = `${currentAccount.followers} ผู้ติดตาม`;
       sidebarClips.textContent = `${currentAccount.clips} คลิป`;
-      sidebarVerify.textContent = verified ? 'ยืนยันแล้ว' : 'ยังไม่ได้ยืนยัน';
-      verifyBadge.innerHTML = verified ? '<span>✔️</span><span>สถานะบัญชี: ยืนยันแล้ว</span>' : '<span>✖</span><span>สถานะบัญชี: ยังไม่ได้ยืนยัน</span>';
+      sidebarVerify.textContent = currentAccount.verified ? 'ยืนยันแล้ว' : 'ยังไม่ได้ยืนยัน';
+      verifyBadge.innerHTML = currentAccount.verified ? '<span>✔️</span><span>สถานะบัญชี: ยืนยันแล้ว</span>' : '<span>✖</span><span>สถานะบัญชี: ยังไม่ได้ยืนยัน</span>';
+    }
+
+    function loadServerState() {
+      apiFetch('/feed').then(r => { if (r && r.clips) renderFeed(r.clips); }).catch(()=>{});
+      apiFetch(`/profile/${encodeURIComponent(currentAccount.handle)}`).then(r => {
+        if (r && r.user) {
+          currentAccount.name = r.user.name; currentAccount.email = r.user.email; currentAccount.age = r.user.age; currentAccount.verified = !!r.user.verified; currentAccount.followers = r.followers||0; currentAccount.clips = (r.clips||[]).length; updateProfileDisplay();
+        }
+      }).catch(()=>{});
     }
 
     registerBtn.addEventListener('click', () => {
-      const result = validateAccount();
-      if (!result.valid) {
-        showStatus(verifyResult, false, result.message);
-        return;
-      }
-      currentAccount.name = result.name;
-      currentAccount.handle = result.handle;
-      currentAccount.age = result.age;
-      currentAccount.email = result.email;
-      currentAccount.verified = false;
-      showStatus(verifyResult, true, `สมัครสำเร็จ ${result.name} (${result.handle})`);
-      updateProfile(result.name, result.handle, false);
-      setActiveView('home');
+      const result = validateAccountInputs();
+      if (!result.valid) { showStatus(verifyResult, false, result.message); return; }
+      const payload = { name: result.name, handle: result.handle, age: result.age, email: result.email, autoHandle: autoHandle() };
+      apiFetch('/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(r => {
+        if (r && r.user) {
+          currentAccount.name = r.user.name; currentAccount.handle = r.user.handle; currentAccount.age = r.user.age; currentAccount.email = r.user.email; currentAccount.verified = !!r.user.verified; currentAccount.followers = 0; currentAccount.clips = 0; updateProfileDisplay(); showStatus(verifyResult, true, `สมัครสำเร็จ ${r.user.name} (${r.user.handle})`); setActiveView('home'); loadServerState();
+        } else if (r && r.error) {
+          const msg = r.error === 'handle_taken' ? 'ชื่อนี้ถูกใช้แล้ว ลองเปลี่ยนหรือเปิดตัวเลือกสร้างอัตโนมัติ' : r.error;
+          showStatus(verifyResult, false, msg);
+        }
+      }).catch(()=> showStatus(verifyResult, false, 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์'));
     });
 
     verifyBtn.addEventListener('click', () => {
-      const result = validateAccount();
-      if (!result.valid) {
-        showStatus(verifyResult, false, `ไม่ผ่านการยืนยัน: ${result.message}`);
-        return;
-      }
-      const passed = result.age >= 13 && result.name.length >= 2;
-      if (!passed) {
-        showStatus(verifyResult, false, 'ไม่ผ่านการยืนยัน: อายุหรือข้อมูลไม่ครบถ้วน');
-        updateProfile(result.name, result.handle, false);
-        return;
-      }
-      currentAccount.name = result.name;
-      currentAccount.handle = result.handle;
-      currentAccount.age = result.age;
-      currentAccount.email = result.email;
-      currentAccount.verified = true;
-      showStatus(verifyResult, true, `ผ่านการยืนยัน ✅ ชื่อบัญชี ${result.handle}`);
-      updateProfile(result.name, result.handle, true);
-    });
-
-    activityButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        activityButtons.forEach(btn => btn.classList.toggle('active', btn === button));
-        const type = button.dataset.activity;
-        if (type === 'watch') {
-          activityContent.innerHTML = `
-            <h4>ประวัติการดู</h4>
-            <p>คลิปล่าสุดของคุณ:</p>
-            <ul style="margin:0;padding-left:18px;color:var(--text)">
-              <li>Sunset in the city</li>
-              <li>Morning routine</li>
-              <li>Dance challenge</li>
-            </ul>`;
-        } else if (type === 'chat') {
-          activityContent.innerHTML = `
-            <h4>ประวัติแชท</h4>
-            <p>ข้อความล่าสุดจากเพื่อนและครีเอเตอร์:</p>
-            <ul style="margin:0;padding-left:18px;color:var(--text)">
-              <li>พูดคุยกับ @mimii เรื่องไอเดียคลิป</li>
-              <li>ตอบกลับ @zoe ในข้อความส่วนตัว</li>
-              <li>แจ้งเตือนกลุ่มกิจกรรม</li>
-            </ul>`;
-        } else {
-          activityContent.innerHTML = `
-            <h4>ประวัติบัญชี</h4>
-            <p>ข้อมูลบัญชีของคุณ:</p>
-            <ul style="margin:0;padding-left:18px;color:var(--text)">
-              <li>ชื่อจริง: ${currentAccount.name}</li>
-              <li>ชื่อบัญชี: ${currentAccount.handle}</li>
-              <li>อายุ: ${currentAccount.age} ปี</li>
-              <li>อีเมล: ${currentAccount.email}</li>
-              <li>สร้างบัญชีในปี: ${currentAccount.created}</li>
-            </ul>`;
-        }
-      });
-    });
-
-    settingsButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        settingsButtons.forEach(btn => btn.classList.toggle('active', btn === button));
-        const type = button.dataset.setting;
-        const details = {
-          privacy: { title: 'ความเป็นส่วนตัว', text: 'ปรับได้ว่าใครจะเห็นคลิปและข้อความของคุณ' },
-          notifications: { title: 'จัดการการแจ้งเตือน', text: 'เปิด/ปิดแจ้งเตือนไลก์, คอมเมนต์, ติดตาม และข้อความ' },
-          security: { title: 'ความปลอดภัยของบัญชี', text: 'ตรวจสอบบัญชีและเปลี่ยนรหัสผ่าน' },
-          language: { title: 'ภาษา', text: 'เลือกภาษาไทยหรืออังกฤษใน UI' },
-          theme: { title: 'ธีมมืด/สว่าง', text: 'สลับธีมให้เข้ากับบรรยากาศการใช้งาน' },
-          block: { title: 'บล็อกผู้ใช้', text: 'จัดการผู้ใช้ที่คุณไม่ต้องการให้ติดต่อหรือเห็นโพสต์' }
-        };
-        settingsDetail.innerHTML = `<h4>${details[type].title}</h4><p>${details[type].text}</p>`;
-      });
-    });
-
-    function performSearch() {
-      const value = searchInput.value.trim().toLowerCase();
-      if (!value) {
-        searchResults.innerHTML = '<div class="result-item"><div><strong>กรุณากรอกคำค้นหา</strong><span>ลองค้นหาผู้ใช้ คลิป หรือแฮชแท็ก</span></div></div>';
-        return;
-      }
-      searchResults.innerHTML = `
-        <div class="result-item">
-          <div>
-            <strong>ผู้ใช้: @${value}</strong>
-            <span>โปรไฟล์ที่เกี่ยวข้องกับคำค้นหา</span>
-          </div>
-          <span>ผู้ติดตาม 1.2K</span>
-        </div>
-        <div class="result-item">
-          <div>
-            <strong>คลิป: ${value} vibes</strong>
-            <span>#dailyvibes #creator</span>
-          </div>
-          <span>พร้อมดู</span>
-        </div>`;
-    }
-
-    searchBtn.addEventListener('click', performSearch);
-    if (searchInput) {
-      searchInput.addEventListener('keydown', event => { if (event.key === 'Enter') performSearch(); });
-    }
-
-    uploadBtn.addEventListener('click', () => {
-      const title = document.getElementById('videoTitle').value.trim();
-      if (!title) {
-        showStatus(uploadResult, false, 'กรุณากรอกชื่อคลิป');
-        return;
-      }
-      currentAccount.clips += 1;
-      showStatus(uploadResult, true, `บันทึกคลิป "${title}" เรียบร้อยแล้ว`);
-      updateProfile(currentAccount.name, currentAccount.handle, currentAccount.verified);
+      const result = validateAccountInputs(); if (!result.valid) { showStatus(verifyResult, false, result.message); return; }
+      apiFetch('/verify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ handle: result.handle }) }).then(r => {
+        if (r && r.passed) { currentAccount.verified = true; updateProfileDisplay(); showStatus(verifyResult, true, `ผ่านการยืนยัน ✅ ชื่อบัญชี ${r.user.handle}`); } else { showStatus(verifyResult, false, 'ไม่ผ่านการยืนยัน'); }
+      }).catch(()=> showStatus(verifyResult, false, 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์'));
     });
 
     followBtn.addEventListener('click', () => {
-      currentAccount.followers += 1;
-      updateProfile(currentAccount.name, currentAccount.handle, currentAccount.verified);
-      showStatus(verifyResult, true, `มีผู้ติดตามใหม่ +1 คน ตอนนี้มี ${currentAccount.followers} ผู้ติดตาม`);
+      apiFetch('/follow', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ follower_handle: '@mimii', following_handle: currentAccount.handle }) }).then(r => {
+        if (r && r.followers !== undefined) { currentAccount.followers = r.followers; updateProfileDisplay(); showStatus(verifyResult, true, `มีผู้ติดตามใหม่ ตอนนี้มี ${currentAccount.followers} ผู้ติดตาม`); }
+      }).catch(()=> showStatus(verifyResult, false, 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์'));
     });
 
-    editProfileBtn.addEventListener('click', () => {
-      setActiveView('profile');
+    uploadBtn.addEventListener('click', () => {
+      const title = document.getElementById('videoTitle').value.trim();
+      const tags = document.getElementById('videoTags').value.trim();
+      const cover = document.getElementById('videoCover').value.trim();
+      if (!title) { showStatus(uploadResult, false, 'กรุณากรอกชื่อคลิป'); return; }
+      apiFetch('/upload', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: new URLSearchParams({ handle: currentAccount.handle, title, tags, cover }) }).then(r => { showStatus(uploadResult, true, `บันทึกคลิป "${title}" เรียบร้อยแล้ว`); loadServerState(); }).catch(()=> showStatus(uploadResult, false, 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์'));
     });
 
+    searchBtn.addEventListener('click', () => {
+      const q = searchInput.value.trim(); if (!q) { searchResults.innerHTML = '<div class="result-item">กรุณากรอกคำค้นหา</div>'; return; }
+      apiFetch(`/search?q=${encodeURIComponent(q)}`).then(r => {
+        const usersHtml = (r.users||[]).map(u=>`<div class="result-item"><div><strong>ผู้ใช้: ${escapeHtml(u.handle)}</strong><span>${escapeHtml(u.name)}</span></div><span>ดู</span></div>`).join('');
+        const clipsHtml = (r.clips||[]).map(c=>`<div class="result-item"><div><strong>คลิป: ${escapeHtml(c.title)}</strong><span>${escapeHtml(c.tags)}</span></div><span>ดู</span></div>`).join('');
+        searchResults.innerHTML = usersHtml + clipsHtml || '<div class="result-item">ไม่พบผลลัพธ์</div>';
+      }).catch(()=> searchResults.innerHTML = '<div class="result-item">การค้นหาไม่สำเร็จ</div>');
+    });
+
+    editProfileBtn.addEventListener('click', () => setActiveView('profile'));
+
+    // initial
     updateProfileDisplay();
     loadServerState();
   </script>
