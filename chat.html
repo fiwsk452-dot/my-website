@@ -22,6 +22,16 @@
       <div>AI Chat</div>
       <div><a id="logout" href="#" style="color:#fff;text-decoration:underline">Logout</a></div>
     </header>
+    <div id="dev-banner" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:9999">
+      <div style="background:#fff;padding:18px 20px;border-radius:8px;max-width:520px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.25)">
+        <h2 style="margin:0 0 8px">เว็บไซต์อยู่ในช่วงพัฒนา</h2>
+        <p style="margin:0 0 12px;color:#444">ฟีเจอร์การแชทนี้เป็นเวอร์ชันทดสอบ การตอบเป็นแบบจำลองเท่านั้น</p>
+        <div style="display:flex;gap:8px;justify-content:center;align-items:center">
+          <button id="dev-ok" style="padding:8px 12px;border-radius:6px;border:none;background:#0b74de;color:#fff;cursor:pointer">ตกลง เข้าใช้งาน</button>
+          <label style="color:#666;font-size:13px;display:flex;align-items:center;gap:6px"><input id="dev-hide" type="checkbox"> ไม่แสดงอีก</label>
+        </div>
+      </div>
+    </div>
     <main>
       <div id="whoami">กำลังโหลดข้อมูลบัญชี...</div>
       <div class="messages" id="messages"></div>
@@ -72,6 +82,15 @@
       });
 
       whoami();
+      (function(){
+        const seen = localStorage.getItem('dev_banner_seen');
+        const banner = document.getElementById('dev-banner');
+        if(seen==='true') { banner.style.display='none'; return; }
+        document.getElementById('dev-ok').addEventListener('click', ()=>{
+          if(document.getElementById('dev-hide').checked) localStorage.setItem('dev_banner_seen','true');
+          banner.style.display='none';
+        });
+      })();
     </script>
   </body>
 </html>

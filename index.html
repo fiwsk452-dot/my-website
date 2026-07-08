@@ -14,6 +14,16 @@
     </style>
   </head>
   <body>
+    <div id="dev-banner" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:9999">
+      <div style="background:#fff;padding:20px 22px;border-radius:8px;max-width:480px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.25)">
+        <h2 style="margin:0 0 8px">เว็บไซต์อยู่ในช่วงพัฒนา</h2>
+        <p style="margin:0 0 12px;color:#444">บางฟีเจอร์อาจยังไม่พร้อมใช้งาน หากต้องการทดสอบ ให้กด "ตกลง" เพื่อเข้าเว็บไซต์</p>
+        <div style="display:flex;gap:8px;justify-content:center;align-items:center">
+          <button id="dev-ok" style="padding:8px 12px;border-radius:6px;border:none;background:#0b74de;color:#fff;cursor:pointer">ตกลง</button>
+          <label style="color:#666;font-size:13px;display:flex;align-items:center;gap:6px"><input id="dev-hide" type="checkbox"> ไม่แสดงอีก</label>
+        </div>
+      </div>
+    </div>
     <div class="card">
       <div class="brand">AI Chat — เริ่มใช้งาน</div>
       <p>กรุณากรอกชื่อที่จะแสดงในแชท (ไม่ต้องใช้บัญชี)</p>
@@ -27,6 +37,17 @@
         localStorage.setItem('ai_chat_user', JSON.stringify({displayName: name, email: ''}));
         location.href = 'chat.html';
       });
+    </script>
+    <script>
+      (function(){
+        const seen = localStorage.getItem('dev_banner_seen');
+        const banner = document.getElementById('dev-banner');
+        if(seen==='true') { banner.style.display='none'; return; }
+        document.getElementById('dev-ok').addEventListener('click', ()=>{
+          if(document.getElementById('dev-hide').checked) localStorage.setItem('dev_banner_seen','true');
+          banner.style.display='none';
+        });
+      })();
     </script>
   </body>
 </html>
