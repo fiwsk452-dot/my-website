@@ -20,7 +20,7 @@
   <body>
     <header>
       <div>AI Chat</div>
-      <div><a href="/logout" style="color:#fff;text-decoration:underline">Logout</a></div>
+      <div><a id="logout" href="#" style="color:#fff;text-decoration:underline">Logout</a></div>
     </header>
     <main>
       <div id="whoami">กำลังโหลดข้อมูลบัญชี...</div>
@@ -31,17 +31,46 @@
       </form>
     </main>
     <script>
-      async function whoami(){
-        const r = await fetch('/api/whoami');
-        const j = await r.json();
-        document.getElementById('whoami').textContent = j.user ? `เข้าสู่ระบบ: ${j.user.displayName} (${j.user.emails?.[0]?.value||''})` : 'ไม่ได้เข้าสู่ระบบ';
+      // client-only whoami (from localStorage)
+      function whoami(){
+        const u = JSON.parse(localStorage.getItem('ai_chat_user')||'null');
+        document.getElementById('whoami').textContent = u ? `เข้าสู่ระบบ: ${u.displayName}` : 'ไม่ได้เข้าสู่ระบบ';
+        if(!u) document.getElementById('whoami').style.color='#c00';
       }
       function addMessage(text,cls){const el=document.createElement('div');el.className='msg '+cls;el.textContent=text;document.getElementById('messages').appendChild(el);document.getElementById('messages').scrollTop=1e9}
+
+      // simple simulated AI reply (no server)
+      function simulateAiReply(userMessage){
+        const replies = [
+          'ขอโทษ ฉันกำลังคิดอยู่...',
+          'นี่คือคำตอบแบบจำลอง: ',
+          'ขอบคุณที่ถาม ฉันช่วยได้ดังนี้...' 
+        ];
+        const pick = replies[Math.floor(Math.random()*replies.length)];
+        return `${pick} ${userMessage}`;
+      }
+
       document.getElementById('form').addEventListener('submit', async e=>{
-        e.preventDefault();const input=document.getElementById('input');const txt=input.value.trim();if(!txt) return;addMessage(txt,'user');input.value='';
-        const res = await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt})});
-        const j = await res.json(); addMessage(j.reply || j.error || 'ไม่มีคำตอบ','ai');
+        e.preventDefault();
+        const input=document.getElementById('input');
+        const txt=input.value.trim();
+        if(!txt) return;
+        addMessage(txt,'user');
+        input.value='';
+        // show typing
+        const typing = document.createElement('div');typing.className='msg ai';typing.textContent='กำลังพิมพ์...';document.getElementById('messages').appendChild(typing);document.getElementById('messages').scrollTop=1e9;
+        // simulate delay
+        setTimeout(()=>{
+          typing.remove();
+          const reply = simulateAiReply(txt);
+          addMessage(reply,'ai');
+        }, 800 + Math.random()*900);
       });
+
+      document.getElementById('logout').addEventListener('click', e=>{
+        e.preventDefault(); localStorage.removeItem('ai_chat_user'); location.href='index.html';
+      });
+
       whoami();
     </script>
   </body>

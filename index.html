@@ -1,23 +1,32 @@
 <!doctype html>
-<html>
+<html lang="th">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>AI Chat — Sign in</title>
+    <title>AI Chat — เริ่ม</title>
     <style>
       body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;background:#f6f7fb;margin:0;display:flex;align-items:center;justify-content:center;height:100vh}
       .card{background:#fff;padding:28px;border-radius:10px;box-shadow:0 6px 24px rgba(20,30,60,0.08);width:360px;text-align:center}
       .brand{font-weight:700;margin-bottom:8px}
-      .btn{display:inline-block;padding:10px 14px;border-radius:8px;background:#4285F4;color:#fff;text-decoration:none;font-weight:600}
+      .btn{display:inline-block;padding:10px 14px;border-radius:8px;background:#4285F4;color:#fff;text-decoration:none;font-weight:600;border:none;cursor:pointer}
       .note{margin-top:12px;color:#666;font-size:13px}
+      input{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:1px solid #ddd}
     </style>
   </head>
   <body>
     <div class="card">
-      <div class="brand">AI Chat — เข้าสู่ระบบด้วย Google</div>
-      <p>ลงชื่อเข้าใช้ด้วยบัญชี Google เพื่อเริ่มแชทกับ AI</p>
-      <a class="btn" href="/auth/google">Sign in with Google</a>
-      <div class="note">หลังจากลงชื่อเข้าใช้แล้วระบบจะพาไปยังหน้าแชท</div>
+      <div class="brand">AI Chat — เริ่มใช้งาน</div>
+      <p>กรุณากรอกชื่อที่จะแสดงในแชท (ไม่ต้องใช้บัญชี)</p>
+      <input id="name" placeholder="ชื่อของคุณ เช่น สมชาย" />
+      <button class="btn" id="start">เริ่มแชท</button>
+      <div class="note">หน้าต่อไปเป็นหน้าแชทแบบ client-only (จำลอง AI)</div>
     </div>
+    <script>
+      document.getElementById('start').addEventListener('click', ()=>{
+        const name = document.getElementById('name').value.trim() || 'ผู้ใช้';
+        localStorage.setItem('ai_chat_user', JSON.stringify({displayName: name, email: ''}));
+        location.href = 'chat.html';
+      });
+    </script>
   </body>
-  </html>
+</html>
