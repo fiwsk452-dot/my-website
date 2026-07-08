@@ -55,12 +55,19 @@
         const low = m.toLowerCase();
 
         // Custom rule list: add rules here to map specific inputs -> exact replies
-        // Each rule has: { test: RegExp, reply: string | (match)=>string }
+        // Each rule has: { tests: RegExp[], reply: string }
+        // The rule matches if any of the tests matches the normalized user text.
         const customRules = [
-          // example: math short-hand exact match for "1+1=" or "1+1"
-          { test: /^\s*1\s*\+\s*1\s*=?\s*$/i, reply: '1 + 1 = 2' },
-          // example: specific phrase mapping — change the phrase and response as you want
-          { test: /\bเจอคำนี้\b/i, reply: 'ผมเห็นคำนี้แล้ว — นี่คือคำอธิบายที่ควรแสดงให้ผู้ใช้ทราบ...' }
+          { tests: [/^\s*1\s*\+\s*1\s*=?\s*$/i], reply: '1 + 1 = 2' },
+          { tests: [/\bโลกหมุนรอบตัวเอง\b/i, /\bหมุนรอบตัวเองกี่ครั้ง\b/i], reply: 'โลกหมุนรอบตัวเอง 1 รอบในทุก ๆ 24 ชั่วโมง' },
+          { tests: [/\bจุดเดือดของน้ำ\b/i, /\bจุดเดือด\b/i], reply: 'ที่ระดับน้ำทะเล น้ำจะเดือดที่อุณหภูมิ 100 องศาเซลเซียส' },
+          { tests: [/\bความเร็วแสง\b/i], reply: 'ความเร็วแสงในสุญญากาศประมาณ 299,792,458 เมตรต่อวินาที' },
+          { tests: [/\bสกุลเงินของญี่ปุ่น\b/i, /\bเงินเยน\b/i], reply: 'สกุลเงินของญี่ปุ่นคือ เยน (JPY)' },
+          { tests: [/\bประเทศที่ใหญ่ที่สุด\b/i, /\bใหญ่ที่สุดในโลก\b/i], reply: 'ประเทศรัสเซียเป็นประเทศที่มีพื้นที่มากที่สุดในโลก' },
+          { tests: [/\bภาษาทางการของจีน\b/i, /\bจีนกลาง\b/i, /\bMandarin\b/i], reply: 'ภาษาทางการของจีนคือ ภาษาจีนกลาง (Mandarin)' },
+          { tests: [/\bประเทศไทยมีประชากร\b/i, /\bกี่คนในประเทศไทย\b/i], reply: 'ประเทศไทยมีประชากรประมาณ 70 ล้านคน' },
+          { tests: [/\bประธานาธิบดีสหรัฐ\b/i, /\bใครเป็นประธานาธิบดีสหรัฐ\b/i], reply: 'ประธานาธิบดีสหรัฐปัจจุบันคือ โจ ไบเดน (Joe Biden) ตามข้อมูลล่าสุด' },
+          { tests: [/\bเจอคำนี้\b/i], reply: 'ผมเห็นคำนี้แล้ว — นี่คือคำอธิบายที่ควรแสดงให้ผู้ใช้ทราบ...' }
         ];
 
         for(const r of customRules){
