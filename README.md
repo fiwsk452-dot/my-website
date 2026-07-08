@@ -1,3 +1,15 @@
+# MyWebProject (local test)
+
+Run a small local server to test the static site, fake Google auth, and API endpoints.
+
+Install and start:
+
+```bash
+npm install
+npm start
+```
+
+Open http://localhost:3000 and click "Sign in with Google" to be redirected to `/chat` without 404.
 # Ply (demo)
 
 Local demo of Ply (frontend + backend).

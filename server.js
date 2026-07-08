@@ -1,4 +1,39 @@
-﻿require('dotenv').config();
+﻿const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+
+const app = express();
+app.use(cookieParser());
+app.use(express.json());
+
+// Serve static public folder
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Simple auth simulation: /auth/google sets a cookie and redirects to /chat
+app.get('/auth/google', (req, res) => {
+  res.cookie('user', JSON.stringify({displayName: 'Test User', emails: [{value: 'test@example.com'}]}), {httpOnly: false});
+  res.redirect('/chat');
+});
+
+app.get('/logout', (req, res) => {
+  res.clearCookie('user');
+  res.redirect('/');
+});
+
+app.get('/api/whoami', (req, res) => {
+  const u = req.cookies.user ? JSON.parse(req.cookies.user) : null;
+  res.json({user: u});
+});
+
+app.post('/api/chat', (req, res) => {
+  const msg = req.body.message || '';
+  // echo back for demo
+  res.json({reply: `AI (demo) — คุณพิมพ์ว่า: ${msg}`});
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log('Server running on http://localhost:' + port));
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
