@@ -54,6 +54,21 @@
         const m = userMessage.trim();
         const low = m.toLowerCase();
 
+        // Custom rule list: add rules here to map specific inputs -> exact replies
+        // Each rule has: { test: RegExp, reply: string | (match)=>string }
+        const customRules = [
+          // example: math short-hand exact match for "1+1=" or "1+1"
+          { test: /^\s*1\s*\+\s*1\s*=?\s*$/i, reply: '1 + 1 = 2' },
+          // example: specific phrase mapping — change the phrase and response as you want
+          { test: /\bเจอคำนี้\b/i, reply: 'ผมเห็นคำนี้แล้ว — นี่คือคำอธิบายที่ควรแสดงให้ผู้ใช้ทราบ...' }
+        ];
+
+        for(const r of customRules){
+          if(r.test.test(m)){
+            return typeof r.reply === 'function' ? r.reply(m) : r.reply;
+          }
+        }
+
         const greetings = ['สวัสดี','หวัดดี','สบายดีไหม','ยินดีที่ได้คุย'];
         const smallTalk = ['เป็นยังไงบ้าง','สบายดี','ทำอะไรอยู่'];
         const rudeWords = ['ควาย','โง่','แย่'];
