@@ -49,15 +49,50 @@
       }
       function addMessage(text,cls){const el=document.createElement('div');el.className='msg '+cls;el.textContent=text;document.getElementById('messages').appendChild(el);document.getElementById('messages').scrollTop=1e9}
 
-      // simple simulated AI reply (no server)
+      // improved simulated AI reply (rule-based, interactive)
       function simulateAiReply(userMessage){
-        const replies = [
-          'ขอโทษ ฉันกำลังคิดอยู่...',
-          'นี่คือคำตอบแบบจำลอง: ',
-          'ขอบคุณที่ถาม ฉันช่วยได้ดังนี้...' 
-        ];
-        const pick = replies[Math.floor(Math.random()*replies.length)];
-        return `${pick} ${userMessage}`;
+        const m = userMessage.trim();
+        const low = m.toLowerCase();
+
+        const greetings = ['สวัสดี','หวัดดี','สบายดีไหม','ยินดีที่ได้คุย'];
+        const smallTalk = ['เป็นยังไงบ้าง','สบายดี','ทำอะไรอยู่'];
+        const rudeWords = ['ควาย','โง่','แย่'];
+
+        // if user greets
+        if(/\b(สวัสดี|หวัดดี|ฮัลโหล|hello|hi)\b/i.test(low)){
+          const g = greetings[Math.floor(Math.random()*greetings.length)];
+          return `${g}! ผมช่วยอะไรคุณได้บ้างวันนี้?`;
+        }
+
+        // if user small-talk
+        if(smallTalk.some(w=> low.includes(w))){
+          return 'ผมสบายดี ขอบคุณที่ถามครับ คุณล่ะอยากคุยเรื่องอะไร?';
+        }
+
+        // handle rude words calmly
+        if(rudeWords.some(w=> low.includes(w))){
+          return 'ผมตั้งใจช่วยครับ — ถ้าคุณสะดวก ช่วยบอกปัญหาให้ชัดเจนขึ้น ผมจะพยายามช่วยอย่างเต็มที่';
+        }
+
+        // if looks like a question (contains question word or ?)
+        if(/[?？]|\b(คืออะไร|อะไร|ทำไม|อย่างไร|ทำยังไง|ทำไง|ได้ไหม|ช่วย)\b/.test(low)){
+          // try a short helpful reply and ask clarifying question
+          if(/คืออะไร/.test(low) || /อะไร/.test(low)){
+            return `คุณถามว่า "${m}" — โดยทั่วไป นี่คือคำอธิบายสั้นๆ: (ยังไม่แน่ใจหัวข้อที่ต้องการ) คุณหมายถึงเรื่องไหนโดยละเอียดมากขึ้นหรือเปล่าครับ?`;
+          }
+          if(/ทำยังไง|ทำไง|อย่างไร|วิธี/.test(low)){
+            return `ลองทำตามขั้นตอนนี้ดูครับ: 1) ระบุเป้าหมายให้ชัด 2) ทำทีละขั้น 3) ทดสอบผล แล้วบอกผมว่าติดจุดไหน ผมจะช่วยต่อ`; 
+          }
+          return `ผมเข้าใจว่าคุณถามว่า: "${m}" — ช่วยระบุรายละเอียดเพิ่มอีกนิดได้ไหมครับ เพื่อที่ผมจะตอบให้ตรงจุดมากขึ้น?`;
+        }
+
+        // if short phrase, expand and ask
+        if(m.length < 40){
+          return `คุณพูดว่า: "${m}" — ผมเข้าใจแบบนี้: ... (อธิบายสั้นๆ) คุณต้องการให้ผมทำอะไรต่อ เช่น อธิบาย/ยกตัวอย่าง/ให้ขั้นตอน?`;
+        }
+
+        // default: paraphrase + follow-up question
+        return `ขอบคุณที่บอกมานะครับ — จากที่คุณพิมพ์ "${m}", ผมเข้าใจว่าเป็นเรื่องเกี่ยวกับ... (สรุปสั้น) คุณอยากให้ผมช่วยในส่วนไหนต่อ: สรุป, ขั้นตอน, หรือโค้ดตัวอย่าง?`;
       }
 
       document.getElementById('form').addEventListener('submit', async e=>{
