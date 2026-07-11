@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AI Chat</title>
+    <style>
+      body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;height:100vh;display:flex;flex-direction:column}
+      header{background:#0b74de;color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+      main{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px}
+      .messages{flex:1;overflow:auto;padding:8px;border:1px solid #eee;border-radius:8px;background:#fafafa}
+      .msg{margin:6px 0;padding:8px;border-radius:8px;max-width:75%}
+      .msg.user{background:#dbeafe;margin-left:auto}
+      .msg.ai{background:#f1f5f9}
+      form{display:flex;gap:8px}
+      input[type=text]{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd}
+      button{padding:10px 12px;border-radius:8px;border:none;background:#0b74de;color:#fff}
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>AI Chat</div>
+      <div><a id="logout" href="#" style="color:#fff;text-decoration:underline">Logout</a></div>
+    </header>
+    <div id="dev-banner" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:9999">
+      <div style="background:#fff;padding:18px 20px;border-radius:8px;max-width:520px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.25)">
+        <h2 style="margin:0 0 8px">เว็บไซต์อยู่ในช่วงพัฒนา</h2>
+        <p style="margin:0 0 12px;color:#444">ฟีเจอร์นี้เชื่อมกับเซิร์ฟเวอร์ หากไม่มี OpenAI key จะตอบในโหมด demo</p>
+        <div style="display:flex;gap:8px;justify-content:center;align-items:center">
+          <button id="dev-ok" style="padding:8px 12px;border-radius:6px;border:none;background:#0b74de;color:#fff;cursor:pointer">ตกลง เข้าใช้งาน</button>
+          <label style="color:#666;font-size:13px;display:flex;align-items:center;gap:6px"><input id="dev-hide" type="checkbox"> ไม่แสดงอีก</label>
+        </div>
+      </div>
+    </div>
+    <main>
+      <div id="whoami">กำลังโหลดข้อมูลบัญชี...</div>
+      <div class="messages" id="messages"></div>
+      <form id="form">
+        <input id="input" type="text" placeholder="พิมพ์คำถามของคุณ..." autocomplete="off">
+        <button type="submit">ส่ง</button>
+      </form>
+    </main>
+    <script>
+      // client-only whoami (from localStorage)
+      function whoami(){
+        const u = JSON.parse(localStorage.getItem('ai_chat_user')||'null');
+        document.getElementById('whoami').textContent = u ? `เข้าสู่ระบบ: ${u.displayName}` : 'ไม่ได้เข้าสู่ระบบ';
+        if(!u) document.getElementById('whoami').style.color='#c00';
+      }
+      function addMessage(text,cls){const el=document.createElement('div');el.className='msg '+cls;el.textContent=text;document.getElementById('messages').appendChild(el);document.getElementById('messages').scrollTop=1e9}
+
+      // improved simulated AI reply (rule-based, interactive)
+      function simulateAiReply(userMessage){
+        const m = userMessage.trim();
+        const low = m.toLowerCase();
+
+        // Custom rule list: add rules here to map specific inputs -> exact replies
+        // Each rule has: { tests: RegExp[], reply: string }
+        // The rule matches if any of the tests matches the normalized user text.
+        const customRules = [
+          { tests: [/^\s*1\s*\+\s*1\s*=?\s*$/i], reply: '1 + 1 = 2' },
+          { tests: [/โลกหมุนรอบตัวเอง/i, /หมุนรอบตัวเองกี่ครั้ง/i], reply: 'โลกหมุนรอบตัวเอง 1 รอบในทุก ๆ 24 ชั่วโมง' },
+          { tests: [/จุดเดือดของน้ำ/i, /จุดเดือด/i], reply: 'ที่ระดับน้ำทะเล น้ำจะเดือดที่อุณหภูมิ 100 องศาเซลเซียส' },
+          { tests: [/ความเร็วแสง/i], reply: 'ความเร็วแสงในสุญญากาศประมาณ 299,792,458 เมตรต่อวินาที' },
+          { tests: [/สกุลเงินของญี่ปุ่น/i, /เงินเยน/i], reply: 'สกุลเงินของญี่ปุ่นคือ เยน (JPY)' },
+          { tests: [/ประเทศที่ใหญ่ที่สุด/i, /ใหญ่ที่สุดในโลก/i], reply: 'ประเทศรัสเซียเป็นประเทศที่มีพื้นที่มากที่สุดในโลก' },
+          { tests: [/ภาษาทางการของจีน/i, /จีนกลาง/i, /mandarin/i], reply: 'ภาษาทางการของจีนคือ ภาษาจีนกลาง (Mandarin)' },
+          { tests: [/ประเทศไทยมีประชากร/i, /กี่คนในประเทศไทย/i, /กี่คนในไทย/i], reply: 'ประเทศไทยมีประชากรประมาณ 70 ล้านคน' },
+          { tests: [/ประธานาธิบดีสหรัฐ/i, /ใครเป็นประธานาธิบดีสหรัฐ/i, /ประธานาธิบดีสหรัฐคือใคร/i], reply: 'ประธานาธิบดีสหรัฐปัจจุบันคือ โจ ไบเดน (Joe Biden) ตามข้อมูลล่าสุด' },
+          { tests: [/เจอคำนี้/i], reply: 'ผมเห็นคำนี้แล้ว — นี่คือคำอธิบายที่ควรแสดงให้ผู้ใช้ทราบ...' }
+        ];
+
+        for(const r of customRules){
+          if(r.tests.some(t => t.test(m))){
+            return typeof r.reply === 'function' ? r.reply(m) : r.reply;
+          }
+        }
+
+        const greetings = ['สวัสดี','หวัดดี','สบายดีไหม','ยินดีที่ได้คุย'];
+        const smallTalk = ['เป็นยังไงบ้าง','สบายดี','ทำอะไรอยู่'];
+        const rudeWords = ['ควาย','โง่','แย่'];
+
+        // if user greets
+        if(/\b(สวัสดี|หวัดดี|ฮัลโหล|hello|hi)\b/i.test(low)){
+          const g = greetings[Math.floor(Math.random()*greetings.length)];
+          return `${g}! ผมช่วยอะไรคุณได้บ้างวันนี้?`;
+        }
+
+        // if user small-talk
+        if(smallTalk.some(w=> low.includes(w))){
+          return 'ผมสบายดี ขอบคุณที่ถามครับ คุณล่ะอยากคุยเรื่องอะไร?';
+        }
+
+        // handle rude words calmly
+        if(rudeWords.some(w=> low.includes(w))){
+          return 'ผมตั้งใจช่วยครับ — ถ้าคุณสะดวก ช่วยบอกปัญหาให้ชัดเจนขึ้น ผมจะพยายามช่วยอย่างเต็มที่';
+        }
+
+        // if looks like a question (contains question word or ?)
+        if(/[?？]|\b(คืออะไร|อะไร|ทำไม|อย่างไร|ทำยังไง|ทำไง|ได้ไหม|ช่วย)\b/.test(low)){
+          // try a short helpful reply and ask clarifying question
+          if(/คืออะไร/.test(low) || /อะไร/.test(low)){
+            return `คุณถามว่า "${m}" — โดยทั่วไป นี่คือคำอธิบายสั้นๆ: (ยังไม่แน่ใจหัวข้อที่ต้องการ) คุณหมายถึงเรื่องไหนโดยละเอียดมากขึ้นหรือเปล่าครับ?`;
+          }
+          if(/ทำยังไง|ทำไง|อย่างไร|วิธี/.test(low)){
+            return `ลองทำตามขั้นตอนนี้ดูครับ: 1) ระบุเป้าหมายให้ชัด 2) ทำทีละขั้น 3) ทดสอบผล แล้วบอกผมว่าติดจุดไหน ผมจะช่วยต่อ`; 
+          }
+          return `ผมเข้าใจว่าคุณถามว่า: "${m}" — ช่วยระบุรายละเอียดเพิ่มอีกนิดได้ไหมครับ เพื่อที่ผมจะตอบให้ตรงจุดมากขึ้น?`;
+        }
+
+        // if short phrase, expand and ask
+        if(m.length < 40){
+          return `คุณพูดว่า: "${m}" — ผมเข้าใจแบบนี้: ... (อธิบายสั้นๆ) คุณต้องการให้ผมทำอะไรต่อ เช่น อธิบาย/ยกตัวอย่าง/ให้ขั้นตอน?`;
+        }
+
+        // default: paraphrase + follow-up question
+        return `ขอบคุณที่บอกมานะครับ — จากที่คุณพิมพ์ "${m}", ผมเข้าใจว่าเป็นเรื่องเกี่ยวกับ... (สรุปสั้น) คุณอยากให้ผมช่วยในส่วนไหนต่อ: สรุป, ขั้นตอน, หรือโค้ดตัวอย่าง?`;
+      }
+
+      async function getAiReply(userMessage){
+        try {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: userMessage })
+          });
+          const data = await response.json();
+          if (data && typeof data.reply === 'string' && data.reply.trim()) {
+            return data.reply;
+          }
+          throw new Error(data?.error || 'no_reply');
+        } catch (err) {
+          console.warn('Falling back to local reply:', err);
+          return simulateAiReply(userMessage);
+        }
+      }
+
+      document.getElementById('form').addEventListener('submit', async e=>{
+        e.preventDefault();
+        const input=document.getElementById('input');
+        const txt=input.value.trim();
+        if(!txt) return;
+        addMessage(txt,'user');
+        input.value='';
+        // show typing
+        const typing = document.createElement('div');typing.className='msg ai';typing.textContent='กำลังพิมพ์...';document.getElementById('messages').appendChild(typing);document.getElementById('messages').scrollTop=1e9;
+        // simulate delay
+        setTimeout(async ()=>{
+          typing.remove();
+          const reply = await getAiReply(txt);
+          addMessage(reply,'ai');
+        }, 800 + Math.random()*900);
+      });
+
+      document.getElementById('logout').addEventListener('click', e=>{
+        e.preventDefault(); localStorage.removeItem('ai_chat_user'); location.href='index.html';
+      });
+
+      whoami();
+      (function(){
+        const seen = localStorage.getItem('dev_banner_seen');
+        const banner = document.getElementById('dev-banner');
+        if(seen==='true') { banner.style.display='none'; return; }
+        document.getElementById('dev-ok').addEventListener('click', ()=>{
+          if(document.getElementById('dev-hide').checked) localStorage.setItem('dev_banner_seen','true');
+          banner.style.display='none';
+        });
+      })();
+    </script>
+  </body>
+</html>

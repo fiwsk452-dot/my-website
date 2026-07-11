@@ -61,34 +61,52 @@ app.get('/api/whoami', (req, res) => {
 });
 
 app.post('/api/chat', async (req, res) => {
-  const isProtected = hasGoogle; // require authentication only when real OAuth is configured
+    try {
+        const isProtected = hasGoogle;
+        // ...
+
   if (isProtected && (!req.isAuthenticated || !req.isAuthenticated())) return res.status(401).json({ error: 'unauthenticated' });
   const { message } = req.body || {};
   if (!message) return res.status(400).json({ error: 'no_message' });
 
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) {
+  const key = process.env.GEMINI_API_KEY;
+  const forceDemo = process.env.FORCE_DEMO === '1' || process.env.FORCE_DEMO === 'true';
+  if (forceDemo || !key) {
     return res.json({ reply: `AI (demo) — คุณพิมพ์ว่า: ${message}` });
   }
 
-  try {
-    const resp = await axios.post('https://api.openai.com/v1/chat/completions', {
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: 'You are a helpful assistant that replies concisely in Thai.' },
-        { role: 'user', content: message }
-      ],
-      max_tokens: 600
-    }, {
-      headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' }
-    });
+const resp = await axios.post(
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${key}`,
+  {
+    contents: [
+      {
+        parts: [
+          {
+            text: `คุณคือผู้ช่วย AI อย่างเป็นมิตร ตอบเป็นภาษาไทย
 
-    const reply = resp.data.choices?.[0]?.message?.content || 'ขออภัย ไม่มีคำตอบ';
+ผู้ใช้: ${message}`
+          }
+        ]
+      }
+    ]
+  },
+  {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }
+);
+
+
+
+    const reply =
+  resp.data.candidates?.[0]?.content?.parts?.[0]?.text ||
+  'ขออภัย ไม่มีคำตอบ';
     res.json({ reply });
-  } catch (err) {
+} catch (err) {
     console.error('OpenAI error', err?.response?.data || err.message);
     res.status(500).json({ error: 'ai_error' });
-  }
+}
 });
 
 const PORT = process.env.PORT || 3000;
