@@ -25,7 +25,7 @@
     <div id="dev-banner" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:9999">
       <div style="background:#fff;padding:18px 20px;border-radius:8px;max-width:520px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.25)">
         <h2 style="margin:0 0 8px">เว็บไซต์อยู่ในช่วงพัฒนา</h2>
-        <p style="margin:0 0 12px;color:#444">ฟีเจอร์การแชทนี้เป็นเวอร์ชันทดสอบ การตอบเป็นแบบจำลองเท่านั้น</p>
+        <p style="margin:0 0 12px;color:#444">ฟีเจอร์นี้เชื่อมกับเซิร์ฟเวอร์ หากไม่มี OpenAI key จะตอบในโหมด demo</p>
         <div style="display:flex;gap:8px;justify-content:center;align-items:center">
           <button id="dev-ok" style="padding:8px 12px;border-radius:6px;border:none;background:#0b74de;color:#fff;cursor:pointer">ตกลง เข้าใช้งาน</button>
           <label style="color:#666;font-size:13px;display:flex;align-items:center;gap:6px"><input id="dev-hide" type="checkbox"> ไม่แสดงอีก</label>
@@ -117,6 +117,24 @@
         return `ขอบคุณที่บอกมานะครับ — จากที่คุณพิมพ์ "${m}", ผมเข้าใจว่าเป็นเรื่องเกี่ยวกับ... (สรุปสั้น) คุณอยากให้ผมช่วยในส่วนไหนต่อ: สรุป, ขั้นตอน, หรือโค้ดตัวอย่าง?`;
       }
 
+      async function getAiReply(userMessage){
+        try {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: userMessage })
+          });
+          const data = await response.json();
+          if (data && typeof data.reply === 'string' && data.reply.trim()) {
+            return data.reply;
+          }
+          throw new Error(data?.error || 'no_reply');
+        } catch (err) {
+          console.warn('Falling back to local reply:', err);
+          return simulateAiReply(userMessage);
+        }
+      }
+
       document.getElementById('form').addEventListener('submit', async e=>{
         e.preventDefault();
         const input=document.getElementById('input');
@@ -127,9 +145,9 @@
         // show typing
         const typing = document.createElement('div');typing.className='msg ai';typing.textContent='กำลังพิมพ์...';document.getElementById('messages').appendChild(typing);document.getElementById('messages').scrollTop=1e9;
         // simulate delay
-        setTimeout(()=>{
+        setTimeout(async ()=>{
           typing.remove();
-          const reply = simulateAiReply(txt);
+          const reply = await getAiReply(txt);
           addMessage(reply,'ai');
         }, 800 + Math.random()*900);
       });
